@@ -440,9 +440,9 @@ function handleExport(format) {
 
 function exportToCSV(products) {
     const headers = [
-        'Tipo', 'Mês', 'Localização', 'Produto Ótimo', 'Preço Tabela Ótimo', 'Preço Promocional Ótimo',
-        '% Tabela Ótimo', '% Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente', 
-        'Preço Promocional Concorrente', '% Tabela Concorrente', '% Promocional Concorrente', 'Diff Pesquisa',
+        'Tipo', 'Mês', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
+        'IC de % Tabela Lider', 'IC de % Promocional Lider', 'Concorrente', 'Preço Tabela Concorrente',
+        'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -475,9 +475,9 @@ function exportToCSV(products) {
 
 function exportToExcel(products) {
     const headers = [
-        'Tipo', 'Mês', 'Localização', 'Produto Ótimo', 'Preço Tabela Ótimo', 'Preço Promocional Ótimo',
-        '% Tabela Ótimo', '% Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente', 
-        'Preço Promocional Concorrente', '% Tabela Concorrente', '% Promocional Concorrente', 'Diff Pesquisa',
+        'Tipo', 'Mês', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
+        'IC de % Tabela Lider', 'IC de % Promocional Lider', 'Concorrente', 'Preço Tabela Concorrente',
+        'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
