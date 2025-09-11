@@ -49,7 +49,15 @@
                         <option value="Todos">Todos</option>
                     </select>
                 </div>
+                <div class="filter-group">
+                    <label for="concorrenteFilter" class="filter-label">Concorrente</label>
+                    <select id="concorrenteFilter" class="form-control">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
                 <div class="filter-actions">
+                    <button class="btn btn--secondary" id="applyFilterBtn">Aplicar Filtro</button>
+                    <button class="btn btn--outline" id="clearFilterBtn">Limpar</button>
                     <button class="btn btn--primary" id="cadastrarBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -64,9 +72,9 @@
         <!-- Main Content -->
         <main class="dashboard-main">
             <div class="comparison-container">
-                <!-- Produto Ótimo -->
+                <!-- Produto Lider -->
                 <div class="product-column">
-                    <h2 class="column-title">PRODUTO ÓTIMO</h2>
+                    <h2 class="column-title">PRODUTO LIDER</h2>
                     <div class="product-card">
                         <div class="product-image" id="otimaImage">
                             <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="camera-icon">
@@ -86,11 +94,11 @@
                                     <p class="price promotional" data-value="7500" id="otimaPrecoPromocional">R$ 7.500,00</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>% Tabela</h3>
+                                    <h3>IC Tabela</h3>
                                     <p class="percentage" data-value="95" id="otimaPercentualTabela">95%</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>% Promocional</h3>
+                                    <h3>IC Promocional</h3>
                                     <p class="percentage" data-value="30" id="otimaPercentualPromocional">30%</p>
                                 </div>
                             </div>
@@ -120,11 +128,11 @@
                                     <p class="price promotional" data-value="9250" id="concorrentePrecoPromocional">R$ 9.250,00</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>% Tabela</h3>
+                                    <h3>IC Tabela</h3>
                                     <p class="percentage" data-value="90" id="concorrentePercentualTabela">90%</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>% Promocional</h3>
+                                    <h3>IC Promocional</h3>
                                     <p class="percentage" data-value="95" id="concorrentePercentualPromocional">95%</p>
                                 </div>
                             </div>
@@ -158,11 +166,12 @@
                                 <th>Tipo</th>
                                 <th>Mês</th>
                                 <th>Localização</th>
-                                <th>Produto Ótimo</th>
+                                <th>Produto Lider</th>
                                 <th>Concorrente</th>
                                 <th>Diff Pesquisa</th>
                                 <th>Pesquisador</th>
                                 <th>Record</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -219,9 +228,9 @@
                         </div>
                     </div>
 
-                    <!-- Produto Ótimo -->
+                    <!-- Produto Lider -->
                     <div class="form-section">
-                        <h3>Produto Ótimo</h3>
+                        <h3>Produto Lider</h3>
                         <div class="upload-section">
                             <label class="form-label">Foto do Produto</label>
                             <div class="upload-area" id="uploadOtima">
@@ -237,7 +246,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="modalOtimaNome" class="form-label">Nome do Produto *</label>
-                                <input type="text" id="modalOtimaNome" class="form-control" required placeholder="Nome do produto ótimo">
+                                <input type="text" id="modalOtimaNome" class="form-control" required placeholder="Nome do produto lider">
                             </div>
                             <div class="form-group">
                                 <label for="modalOtimaPrecoTabela" class="form-label">Preço Tabela (R$) *</label>
@@ -250,13 +259,13 @@
                                 <input type="number" id="modalOtimaPrecoPromocional" class="form-control" step="0.01" required placeholder="0,00">
                             </div>
                             <div class="form-group">
-                                <label for="modalOtimaPercentualTabela" class="form-label">% Tabela *</label>
+                                <label for="modalOtimaPercentualTabela" class="form-label">IC Tabela *</label>
                                 <input type="number" id="modalOtimaPercentualTabela" class="form-control" min="0" max="100" required placeholder="0">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="modalOtimaPercentualPromocional" class="form-label">% Promocional *</label>
+                                <label for="modalOtimaPercentualPromocional" class="form-label">IC Promocional *</label>
                                 <input type="number" id="modalOtimaPercentualPromocional" class="form-control" min="0" max="100" required placeholder="0">
                             </div>
                         </div>
@@ -293,13 +302,13 @@
                                 <input type="number" id="modalConcorrentePrecoPromocional" class="form-control" step="0.01" required placeholder="0,00">
                             </div>
                             <div class="form-group">
-                                <label for="modalConcorrentePercentualTabela" class="form-label">% Tabela *</label>
+                                <label for="modalConcorrentePercentualTabela" class="form-label">IC Tabela *</label>
                                 <input type="number" id="modalConcorrentePercentualTabela" class="form-control" min="0" max="100" required placeholder="0">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="modalConcorrentePercentualPromocional" class="form-label">% Promocional *</label>
+                                <label for="modalConcorrentePercentualPromocional" class="form-label">IC Promocional *</label>
                                 <input type="number" id="modalConcorrentePercentualPromocional" class="form-control" min="0" max="100" required placeholder="0">
                             </div>
                             <div class="form-group">
