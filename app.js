@@ -17,7 +17,7 @@ let produtos = [
             nome: "Herman Miller Aeron",
             precoTabela: 11500.00,
             precoPromocional: 9250.00,
-            percentualHacker: 90,
+            percentualTabela: 90,
             percentualPromocional: 95,
             foto: null
         },
@@ -42,7 +42,7 @@ let produtos = [
             nome: "La-Z-Boy Classic",
             precoTabela: 22000.00,
             precoPromocional: 18500.00,
-            percentualHacker: 85,
+            percentualTabela: 85,
             percentualPromocional: 92,
             foto: null
         },
@@ -67,7 +67,7 @@ let produtos = [
             nome: "DXRacer Formula",
             precoTabela: 19500.00,
             precoPromocional: 16200.00,
-            percentualHacker: 78,
+            percentualTabela: 78,
             percentualPromocional: 88,
             foto: null
         },
@@ -173,7 +173,7 @@ function updateDisplay() {
 
     updateValue('concorrentePrecoTabela', formatCurrency(produto.concorrente.precoTabela));
     updateValue('concorrentePrecoPromocional', formatCurrency(produto.concorrente.precoPromocional));
-    updateValue('concorrentePercentualHacker', produto.concorrente.percentualHacker + '%');
+    updateValue('concorrentePercentualTabela', produto.concorrente.percentualTabela + '%');
     updateValue('concorrentePercentualPromocional', produto.concorrente.percentualPromocional + '%');
 }
 
@@ -258,7 +258,7 @@ function updateExportInfo() {
     const itemCount = document.getElementById('itemCount');
 
     if (exportInfo) exportInfo.textContent = `${filteredCount} itens exportáveis`;
-    if (itemCount) itemCount.textContent = `${produtos.length} ITENS`;
+    if (itemCount) itemCount.textContent = `${filteredCount} ITENS`;
 }
 
 function applyFilters() {
@@ -331,7 +331,7 @@ function handleCadastro(e) {
             nome: document.getElementById('modalConcorrenteNome').value,
             precoTabela: parseFloat(document.getElementById('modalConcorrentePrecoTabela').value),
             precoPromocional: parseFloat(document.getElementById('modalConcorrentePrecoPromocional').value),
-            percentualHacker: parseInt(document.getElementById('modalConcorrentePercentualHacker').value),
+            percentualTabela: parseInt(document.getElementById('modalConcorrentePercentualTabela').value),
             percentualPromocional: parseInt(document.getElementById('modalConcorrentePercentualPromocional').value),
             foto: uploadConcorrente ? uploadConcorrente.dataset.imageData || null : null
         },
@@ -384,7 +384,7 @@ function exportToCSV(products) {
     const headers = [
         'Tipo', 'Mês', 'Localização', 'Produto Ótimo', 'Preço Tabela Ótimo', 'Preço Promocional Ótimo',
         '% Tabela Ótimo', '% Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente', 
-        'Preço Promocional Concorrente', '% Hacker', '% Promocional Concorrente', 'Diff Pesquisa', 
+        'Preço Promocional Concorrente', '% Tabela Concorrente', '% Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -403,7 +403,7 @@ function exportToCSV(products) {
             `"${produto.concorrente.nome}"`,
             produto.concorrente.precoTabela,
             produto.concorrente.precoPromocional,
-            produto.concorrente.percentualHacker,
+            produto.concorrente.percentualTabela,
             produto.concorrente.percentualPromocional,
             produto.diffPesquisa,
             `"${produto.pesquisador}"`,
@@ -419,7 +419,7 @@ function exportToExcel(products) {
     const headers = [
         'Tipo', 'Mês', 'Localização', 'Produto Ótimo', 'Preço Tabela Ótimo', 'Preço Promocional Ótimo',
         '% Tabela Ótimo', '% Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente', 
-        'Preço Promocional Concorrente', '% Hacker', '% Promocional Concorrente', 'Diff Pesquisa', 
+        'Preço Promocional Concorrente', '% Tabela Concorrente', '% Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -438,7 +438,7 @@ function exportToExcel(products) {
             produto.concorrente.nome,
             produto.concorrente.precoTabela,
             produto.concorrente.precoPromocional,
-            produto.concorrente.percentualHacker,
+            produto.concorrente.percentualTabela,
             produto.concorrente.percentualPromocional,
             produto.diffPesquisa,
             produto.pesquisador,
@@ -626,5 +626,9 @@ document.addEventListener('DOMContentLoaded', function() {
     updateTable();
     updateExportInfo();
     
-    console.log('Dashboard inicializado com sucesso!');
+console.log('Dashboard inicializado com sucesso!');
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { getFilteredProducts, produtos };
+}
