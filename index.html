@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Análise - Produtos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>Dashboard de Análise - Produtos</h1>
+                <span class="item-count" id="itemCount">3 ITENS</span>
+            </div>
+            <div class="header-right">
+                <button class="nav-btn" id="prevBtn" aria-label="Anterior">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15,18 9,12 15,6"></polyline>
+                    </svg>
+                </button>
+                <button class="nav-btn" id="nextBtn" aria-label="Próximo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filters-section">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="tipoFilter" class="filter-label">Tipo de Produto</label>
+                    <select id="tipoFilter" class="form-control">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="mesFilter" class="filter-label">Mês</label>
+                    <select id="mesFilter" class="form-control">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="localizacaoFilter" class="filter-label">Localização</label>
+                    <select id="localizacaoFilter" class="form-control">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn--primary" id="cadastrarBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Cadastrar Novo Item
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="comparison-container">
+                <!-- Produto Ótimo -->
+                <div class="product-column">
+                    <h2 class="column-title">PRODUTO ÓTIMO</h2>
+                    <div class="product-card">
+                        <div class="product-image" id="otimaImage">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="camera-icon">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </div>
+                        <div class="product-name" id="otimaName">Cadeira Executiva Premium</div>
+                        <div class="product-info">
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <h3>Preço Tabela</h3>
+                                    <p class="price" data-value="50000" id="otimaPrecoTabela">R$ 50.000,00</p>
+                                </div>
+                                <div class="info-card">
+                                    <h3>Preço Promocional</h3>
+                                    <p class="price promotional" data-value="7500" id="otimaPrecoPromocional">R$ 7.500,00</p>
+                                </div>
+                                <div class="info-card">
+                                    <h3>% Tabela</h3>
+                                    <p class="percentage" data-value="95" id="otimaPercentualTabela">95%</p>
+                                </div>
+                                <div class="info-card">
+                                    <h3>% Promocional</h3>
+                                    <p class="percentage" data-value="30" id="otimaPercentualPromocional">30%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Produto Concorrente -->
+                <div class="product-column">
+                    <h2 class="column-title">PRODUTO CONCORRENTE</h2>
+                    <div class="product-card">
+                        <div class="product-image" id="concorrenteImage">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="camera-icon">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </div>
+                        <div class="product-name" id="concorrenteName">Herman Miller Aeron</div>
+                        <div class="product-info">
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <h3>Preço Tabela</h3>
+                                    <p class="price" data-value="11500" id="concorrentePrecoTabela">R$ 11.500,00</p>
+                                </div>
+                                <div class="info-card">
+                                    <h3>Preço Promocional</h3>
+                                    <p class="price promotional" data-value="9250" id="concorrentePrecoPromocional">R$ 9.250,00</p>
+                                </div>
+                                <div class="info-card">
+                                    <h3>% Hacker</h3>
+                                    <p class="percentage" data-value="90" id="concorrentePercentualHacker">90%</p>
+                                </div>
+                                <div class="info-card">
+                                    <h3>% Promocional</h3>
+                                    <p class="percentage" data-value="95" id="concorrentePercentualPromocional">95%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Section -->
+            <section class="export-section">
+                <div class="export-container">
+                    <button class="btn btn--secondary" id="exportBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Exportar Dados
+                    </button>
+                    <span class="export-info" id="exportInfo">0 itens exportáveis</span>
+                </div>
+            </section>
+
+            <!-- Tabela Comparativa -->
+            <section class="comparison-table-section">
+                <h2 class="table-title">Análise Comparativa</h2>
+                <div class="table-container">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Mês</th>
+                                <th>Localização</th>
+                                <th>Produto Ótimo</th>
+                                <th>Concorrente</th>
+                                <th>Diff Pesquisa</th>
+                                <th>Pesquisador</th>
+                                <th>Record</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal hidden" id="cadastroModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cadastrar Novo Item</h2>
+                <button class="modal-close" id="modalCloseBtn" aria-label="Fechar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="cadastroForm">
+                    <!-- Informações Gerais -->
+                    <div class="form-section">
+                        <h3>Informações Gerais</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalTipo" class="form-label">Tipo de Produto *</label>
+                                <select id="modalTipo" class="form-control" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="modalMes" class="form-label">Mês da Pesquisa *</label>
+                                <select id="modalMes" class="form-control" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalLocalizacao" class="form-label">Localização *</label>
+                                <select id="modalLocalizacao" class="form-control" required>
+                                    <option value="">Selecione...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="modalPesquisador" class="form-label">Pesquisador *</label>
+                                <input type="text" id="modalPesquisador" class="form-control" required placeholder="Nome do pesquisador">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Produto Ótimo -->
+                    <div class="form-section">
+                        <h3>Produto Ótimo</h3>
+                        <div class="upload-section">
+                            <label class="form-label">Foto do Produto</label>
+                            <div class="upload-area" id="uploadOtima">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                <p>Clique ou arraste uma imagem aqui</p>
+                                <input type="file" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalOtimaNome" class="form-label">Nome do Produto *</label>
+                                <input type="text" id="modalOtimaNome" class="form-control" required placeholder="Nome do produto ótimo">
+                            </div>
+                            <div class="form-group">
+                                <label for="modalOtimaPrecoTabela" class="form-label">Preço Tabela (R$) *</label>
+                                <input type="number" id="modalOtimaPrecoTabela" class="form-control" step="0.01" required placeholder="0,00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalOtimaPrecoPromocional" class="form-label">Preço Promocional (R$) *</label>
+                                <input type="number" id="modalOtimaPrecoPromocional" class="form-control" step="0.01" required placeholder="0,00">
+                            </div>
+                            <div class="form-group">
+                                <label for="modalOtimaPercentualTabela" class="form-label">% Tabela *</label>
+                                <input type="number" id="modalOtimaPercentualTabela" class="form-control" min="0" max="100" required placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalOtimaPercentualPromocional" class="form-label">% Promocional *</label>
+                                <input type="number" id="modalOtimaPercentualPromocional" class="form-control" min="0" max="100" required placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Produto Concorrente -->
+                    <div class="form-section">
+                        <h3>Produto Concorrente</h3>
+                        <div class="upload-section">
+                            <label class="form-label">Foto do Produto</label>
+                            <div class="upload-area" id="uploadConcorrente">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                </svg>
+                                <p>Clique ou arraste uma imagem aqui</p>
+                                <input type="file" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalConcorrenteNome" class="form-label">Nome do Produto *</label>
+                                <input type="text" id="modalConcorrenteNome" class="form-control" required placeholder="Nome do produto concorrente">
+                            </div>
+                            <div class="form-group">
+                                <label for="modalConcorrentePrecoTabela" class="form-label">Preço Tabela (R$) *</label>
+                                <input type="number" id="modalConcorrentePrecoTabela" class="form-control" step="0.01" required placeholder="0,00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalConcorrentePrecoPromocional" class="form-label">Preço Promocional (R$) *</label>
+                                <input type="number" id="modalConcorrentePrecoPromocional" class="form-control" step="0.01" required placeholder="0,00">
+                            </div>
+                            <div class="form-group">
+                                <label for="modalConcorrentePercentualHacker" class="form-label">% Hacker *</label>
+                                <input type="number" id="modalConcorrentePercentualHacker" class="form-control" min="0" max="100" required placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="modalConcorrentePercentualPromocional" class="form-label">% Promocional *</label>
+                                <input type="number" id="modalConcorrentePercentualPromocional" class="form-control" min="0" max="100" required placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="modalDiffPesquisa" class="form-label">Diferença de Pesquisa (%) *</label>
+                                <input type="number" id="modalDiffPesquisa" class="form-control" required placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--outline" id="modalCancelBtn">Cancelar</button>
+                <button type="submit" form="cadastroForm" class="btn btn--primary" id="modalSalvarBtn">Salvar Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Export -->
+    <div class="modal hidden" id="exportModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Exportar Dados</h2>
+                <button class="modal-close" id="exportModalCloseBtn" aria-label="Fechar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Selecione o formato para exportação:</p>
+                <div class="export-options">
+                    <button class="btn btn--outline export-option" data-format="csv">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        CSV
+                    </button>
+                    <button class="btn btn--outline export-option" data-format="excel">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                        </svg>
+                        Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
