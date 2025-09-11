@@ -49,7 +49,15 @@
                         <option value="Todos">Todos</option>
                     </select>
                 </div>
+                <div class="filter-group">
+                    <label for="concorrenteFilter" class="filter-label">Concorrente</label>
+                    <select id="concorrenteFilter" class="form-control">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
                 <div class="filter-actions">
+                    <button class="btn btn--secondary" id="applyFilterBtn">Aplicar Filtro</button>
+                    <button class="btn btn--outline" id="clearFilterBtn">Limpar</button>
                     <button class="btn btn--primary" id="cadastrarBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -163,6 +171,7 @@
                                 <th>Diff Pesquisa</th>
                                 <th>Pesquisador</th>
                                 <th>Record</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
