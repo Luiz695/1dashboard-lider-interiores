@@ -842,6 +842,8 @@ select.form-control {
 
 .filter-actions {
   margin-left: auto;
+  display: flex;
+  gap: var(--space-8);
 }
 
 /* Export Section */
