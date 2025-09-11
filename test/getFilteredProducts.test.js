@@ -27,3 +27,14 @@ test('getFilteredProducts returns all items when filters are Todos', () => {
   const result = getFilteredProducts();
   assert.strictEqual(result.length, produtos.length);
 });
+
+test('getFilteredProducts filters by competitor', () => {
+  const { getFilteredProducts } = loadWithDOM(`<!DOCTYPE html>
+    <select id="tipoFilter"><option value="Todos">Todos</option></select>
+    <select id="mesFilter"><option value="Todos">Todos</option></select>
+    <select id="localizacaoFilter"><option value="Todos">Todos</option></select>
+    <select id="concorrenteFilter"><option value="Herman Miller Aeron">Herman Miller Aeron</option></select>`);
+  const result = getFilteredProducts();
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].concorrente.nome, 'Herman Miller Aeron');
+});

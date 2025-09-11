@@ -85,6 +85,7 @@ const filtros = {
 
 let currentProductIndex = 0;
 let nextId = 4;
+let editingProductId = null;
 
 // Utility Functions
 function formatCurrency(value) {
@@ -100,6 +101,7 @@ function setupFilters() {
     const tipoFilter = document.getElementById('tipoFilter');
     const mesFilter = document.getElementById('mesFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
+    const concorrenteFilter = document.getElementById('concorrenteFilter');
     const modalTipo = document.getElementById('modalTipo');
     const modalMes = document.getElementById('modalMes');
     const modalLocalizacao = document.getElementById('modalLocalizacao');
@@ -123,6 +125,14 @@ function setupFilters() {
         localizacaoFilter.innerHTML = '<option value="Todos">Todos</option>';
         filtros.localizacoes.slice(1).forEach(loc => {
             localizacaoFilter.innerHTML += `<option value="${loc}">${loc}</option>`;
+        });
+    }
+
+    if (concorrenteFilter) {
+        concorrenteFilter.innerHTML = '<option value="Todos">Todos</option>';
+        const concorrentes = [...new Set(produtos.map(p => p.concorrente.nome))];
+        concorrentes.forEach(nome => {
+            concorrenteFilter.innerHTML += `<option value="${nome}">${nome}</option>`;
         });
     }
 
@@ -216,15 +226,18 @@ function getFilteredProducts() {
     const tipoFilter = document.getElementById('tipoFilter');
     const mesFilter = document.getElementById('mesFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
+    const concorrenteFilter = document.getElementById('concorrenteFilter');
 
     const tipoValue = tipoFilter ? tipoFilter.value : 'Todos';
     const mesValue = mesFilter ? mesFilter.value : 'Todos';
     const localizacaoValue = localizacaoFilter ? localizacaoFilter.value : 'Todos';
+    const concorrenteValue = concorrenteFilter ? concorrenteFilter.value : 'Todos';
 
     return produtos.filter(produto => {
         return (tipoValue === 'Todos' || produto.tipo === tipoValue) &&
                (mesValue === 'Todos' || produto.mes === mesValue) &&
-               (localizacaoValue === 'Todos' || produto.localizacao === localizacaoValue);
+               (localizacaoValue === 'Todos' || produto.localizacao === localizacaoValue) &&
+               (concorrenteValue === 'Todos' || produto.concorrente.nome === concorrenteValue);
     });
 }
 
@@ -247,6 +260,7 @@ function updateTable() {
             <td class="diff-positive">${produto.diffPesquisa}</td>
             <td>${produto.pesquisador}</td>
             <td>${produto.record}</td>
+            <td><button class="btn btn--outline btn--sm edit-btn" data-id="${produto.id}">Editar</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -266,11 +280,47 @@ function applyFilters() {
     updateExportInfo();
 }
 
-function openCadastroModal() {
+function clearFilters() {
+    const tipoFilter = document.getElementById('tipoFilter');
+    const mesFilter = document.getElementById('mesFilter');
+    const localizacaoFilter = document.getElementById('localizacaoFilter');
+    const concorrenteFilter = document.getElementById('concorrenteFilter');
+
+    if (tipoFilter) tipoFilter.value = 'Todos';
+    if (mesFilter) mesFilter.value = 'Todos';
+    if (localizacaoFilter) localizacaoFilter.value = 'Todos';
+    if (concorrenteFilter) concorrenteFilter.value = 'Todos';
+
+    applyFilters();
+}
+
+function openCadastroModal(produto = null) {
     const modal = document.getElementById('cadastroModal');
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+
+        if (produto) {
+            editingProductId = produto.id;
+            document.getElementById('modalTipo').value = produto.tipo;
+            document.getElementById('modalMes').value = produto.mes;
+            document.getElementById('modalLocalizacao').value = produto.localizacao;
+            document.getElementById('modalPesquisador').value = produto.pesquisador;
+            document.getElementById('modalOtimaNome').value = produto.otima.nome;
+            document.getElementById('modalOtimaPrecoTabela').value = produto.otima.precoTabela;
+            document.getElementById('modalOtimaPrecoPromocional').value = produto.otima.precoPromocional;
+            document.getElementById('modalOtimaPercentualTabela').value = produto.otima.percentualTabela;
+            document.getElementById('modalOtimaPercentualPromocional').value = produto.otima.percentualPromocional;
+            document.getElementById('modalConcorrenteNome').value = produto.concorrente.nome;
+            document.getElementById('modalConcorrentePrecoTabela').value = produto.concorrente.precoTabela;
+            document.getElementById('modalConcorrentePrecoPromocional').value = produto.concorrente.precoPromocional;
+            document.getElementById('modalConcorrentePercentualTabela').value = produto.concorrente.percentualTabela;
+            document.getElementById('modalConcorrentePercentualPromocional').value = produto.concorrente.percentualPromocional;
+            document.getElementById('modalDiffPesquisa').value = parseFloat(produto.diffPesquisa);
+        } else {
+            editingProductId = null;
+            resetCadastroForm();
+        }
     }
 }
 
@@ -280,6 +330,7 @@ function closeCadastroModal() {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
         resetCadastroForm();
+        editingProductId = null;
     }
 }
 
@@ -313,8 +364,7 @@ function handleCadastro(e) {
     const uploadOtima = document.getElementById('uploadOtima');
     const uploadConcorrente = document.getElementById('uploadConcorrente');
 
-    const novoProduto = {
-        id: nextId++,
+    const produtoData = {
         tipo: document.getElementById('modalTipo').value,
         mes: document.getElementById('modalMes').value,
         localizacao: document.getElementById('modalLocalizacao').value,
@@ -335,16 +385,24 @@ function handleCadastro(e) {
             percentualPromocional: parseInt(document.getElementById('modalConcorrentePercentualPromocional').value),
             foto: uploadConcorrente ? uploadConcorrente.dataset.imageData || null : null
         },
-        diffPesquisa: document.getElementById('modalDiffPesquisa').value + '%',
-        record: String(nextId - 1).padStart(3, '0')
+        diffPesquisa: document.getElementById('modalDiffPesquisa').value + '%'
     };
 
-    produtos.push(novoProduto);
+    if (editingProductId) {
+        const index = produtos.findIndex(p => p.id === editingProductId);
+        if (index !== -1) {
+            produtos[index] = { id: editingProductId, record: produtos[index].record, ...produtoData };
+        }
+        showSuccessMessage('Item atualizado com sucesso!');
+    } else {
+        const novoProduto = { id: nextId++, record: String(nextId - 1).padStart(3, '0'), ...produtoData };
+        produtos.push(novoProduto);
+        showSuccessMessage('Item cadastrado com sucesso!');
+    }
+
     updateTable();
     updateExportInfo();
     closeCadastroModal();
-    
-    showSuccessMessage('Item cadastrado com sucesso!');
 }
 
 function showSuccessMessage(message) {
@@ -383,8 +441,8 @@ function handleExport(format) {
 function exportToCSV(products) {
     const headers = [
         'Tipo', 'Mês', 'Localização', 'Produto Ótimo', 'Preço Tabela Ótimo', 'Preço Promocional Ótimo',
-        '% Tabela Ótimo', '% Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente', 
-        'Preço Promocional Concorrente', '% Tabela Concorrente', '% Promocional Concorrente', 'Diff Pesquisa',
+        'IC de % Tabela Ótimo', 'IC de % Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente',
+        'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -418,8 +476,8 @@ function exportToCSV(products) {
 function exportToExcel(products) {
     const headers = [
         'Tipo', 'Mês', 'Localização', 'Produto Ótimo', 'Preço Tabela Ótimo', 'Preço Promocional Ótimo',
-        '% Tabela Ótimo', '% Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente', 
-        'Preço Promocional Concorrente', '% Tabela Concorrente', '% Promocional Concorrente', 'Diff Pesquisa',
+        'IC de % Tabela Ótimo', 'IC de % Promocional Ótimo', 'Concorrente', 'Preço Tabela Concorrente',
+        'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -547,20 +605,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('nextBtn');
     const cadastrarBtn = document.getElementById('cadastrarBtn');
     const exportBtn = document.getElementById('exportBtn');
+    const applyFilterBtn = document.getElementById('applyFilterBtn');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
     
     if (prevBtn) prevBtn.addEventListener('click', navigatePrevious);
     if (nextBtn) nextBtn.addEventListener('click', navigateNext);
-    if (cadastrarBtn) cadastrarBtn.addEventListener('click', openCadastroModal);
+    if (cadastrarBtn) cadastrarBtn.addEventListener('click', () => openCadastroModal());
     if (exportBtn) exportBtn.addEventListener('click', openExportModal);
-    
-    // Filter change events
-    const tipoFilter = document.getElementById('tipoFilter');
-    const mesFilter = document.getElementById('mesFilter');
-    const localizacaoFilter = document.getElementById('localizacaoFilter');
-    
-    if (tipoFilter) tipoFilter.addEventListener('change', applyFilters);
-    if (mesFilter) mesFilter.addEventListener('change', applyFilters);
-    if (localizacaoFilter) localizacaoFilter.addEventListener('change', applyFilters);
+    if (applyFilterBtn) applyFilterBtn.addEventListener('click', applyFilters);
+    if (clearFilterBtn) clearFilterBtn.addEventListener('click', clearFilters);
+
+    // Edit button events
+    const tableBody = document.getElementById('tableBody');
+    if (tableBody) {
+        tableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-btn')) {
+                const id = parseInt(e.target.dataset.id);
+                const produto = produtos.find(p => p.id === id);
+                if (produto) openCadastroModal(produto);
+            }
+        });
+    }
     
     // Modal events
     const modalCloseBtn = document.getElementById('modalCloseBtn');
