@@ -12,16 +12,12 @@ const defaultProdutos = [
             nome: "Cadeira Executiva Premium",
             precoTabela: 50000.00,
             precoPromocional: 7500.00,
-            percentualTabela: 95,
-            percentualPromocional: 30,
             foto: null
         },
         concorrente: {
             nome: "Herman Miller Aeron",
             precoTabela: 11500.00,
             precoPromocional: 9250.00,
-            percentualTabela: 90,
-            percentualPromocional: 95,
             foto: null
         },
         pesquisador: "João Silva",
@@ -38,16 +34,12 @@ const defaultProdutos = [
             nome: "Poltrona Reclinável Luxo",
             precoTabela: 35000.00,
             precoPromocional: 12500.00,
-            percentualTabela: 88,
-            percentualPromocional: 45,
             foto: null
         },
         concorrente: {
             nome: "La-Z-Boy Classic",
             precoTabela: 22000.00,
             precoPromocional: 18500.00,
-            percentualTabela: 85,
-            percentualPromocional: 92,
             foto: null
         },
         pesquisador: "Maria Santos",
@@ -64,16 +56,12 @@ const defaultProdutos = [
             nome: "Cadeira Gamer Pro",
             precoTabela: 28000.00,
             precoPromocional: 15800.00,
-            percentualTabela: 82,
-            percentualPromocional: 55,
             foto: null
         },
         concorrente: {
             nome: "DXRacer Formula",
             precoTabela: 19500.00,
             precoPromocional: 16200.00,
-            percentualTabela: 78,
-            percentualPromocional: 88,
             foto: null
         },
         pesquisador: "Pedro Costa",
@@ -147,6 +135,30 @@ function formatCurrency(value) {
         style: 'currency',
         currency: 'BRL'
     }).format(value);
+}
+
+const icFormatter = new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1
+});
+
+function calculateIcPercentage(liderPrice, concorrentePrice) {
+    const lider = Number(liderPrice);
+    const concorrente = Number(concorrentePrice);
+
+    if (!Number.isFinite(lider) || !Number.isFinite(concorrente) || concorrente <= 0) {
+        return null;
+    }
+
+    return (lider / concorrente) * 100;
+}
+
+function formatIc(value) {
+    if (value === null) {
+        return '—';
+    }
+
+    return `${icFormatter.format(value)}%`;
 }
 
 function formatPeriodo(produto) {
@@ -294,15 +306,15 @@ function clearProductDisplay() {
     const valueFields = [
         'otimaPrecoTabela',
         'otimaPrecoPromocional',
-        'otimaPercentualTabela',
-        'otimaPercentualPromocional',
+        'otimaIcRegular',
+        'otimaIcPromocional',
         'concorrentePrecoTabela',
         'concorrentePrecoPromocional',
-        'concorrentePercentualTabela',
-        'concorrentePercentualPromocional'
+        'concorrenteIcRegular',
+        'concorrenteIcPromocional'
     ];
 
-    valueFields.forEach(fieldId => updateValue(fieldId, '--'));
+    valueFields.forEach(fieldId => updateValue(fieldId, '—'));
     updateProductImage('otimaImage', null);
     updateProductImage('concorrenteImage', null);
 }
@@ -336,13 +348,18 @@ function updateDisplay() {
     // Update values
     updateValue('otimaPrecoTabela', formatCurrency(produto.otima.precoTabela));
     updateValue('otimaPrecoPromocional', formatCurrency(produto.otima.precoPromocional));
-    updateValue('otimaPercentualTabela', produto.otima.percentualTabela + '%');
-    updateValue('otimaPercentualPromocional', produto.otima.percentualPromocional + '%');
+    const icRegularLider = calculateIcPercentage(produto.otima.precoTabela, produto.concorrente.precoTabela);
+    const icPromocionalLider = calculateIcPercentage(produto.otima.precoPromocional, produto.concorrente.precoPromocional);
+    const icRegularConcorrente = calculateIcPercentage(produto.concorrente.precoTabela, produto.otima.precoTabela);
+    const icPromocionalConcorrente = calculateIcPercentage(produto.concorrente.precoPromocional, produto.otima.precoPromocional);
+
+    updateValue('otimaIcRegular', formatIc(icRegularLider));
+    updateValue('otimaIcPromocional', formatIc(icPromocionalLider));
 
     updateValue('concorrentePrecoTabela', formatCurrency(produto.concorrente.precoTabela));
     updateValue('concorrentePrecoPromocional', formatCurrency(produto.concorrente.precoPromocional));
-    updateValue('concorrentePercentualTabela', produto.concorrente.percentualTabela + '%');
-    updateValue('concorrentePercentualPromocional', produto.concorrente.percentualPromocional + '%');
+    updateValue('concorrenteIcRegular', formatIc(icRegularConcorrente));
+    updateValue('concorrenteIcPromocional', formatIc(icPromocionalConcorrente));
 }
 
 function updateValue(elementId, value) {
@@ -485,18 +502,16 @@ function openCadastroModal(produto = null) {
             document.getElementById('modalOtimaNome').value = produto.otima.nome;
             document.getElementById('modalOtimaPrecoTabela').value = produto.otima.precoTabela;
             document.getElementById('modalOtimaPrecoPromocional').value = produto.otima.precoPromocional;
-            document.getElementById('modalOtimaPercentualTabela').value = produto.otima.percentualTabela;
-            document.getElementById('modalOtimaPercentualPromocional').value = produto.otima.percentualPromocional;
             document.getElementById('modalConcorrenteNome').value = produto.concorrente.nome;
             document.getElementById('modalConcorrentePrecoTabela').value = produto.concorrente.precoTabela;
             document.getElementById('modalConcorrentePrecoPromocional').value = produto.concorrente.precoPromocional;
-            document.getElementById('modalConcorrentePercentualTabela').value = produto.concorrente.percentualTabela;
-            document.getElementById('modalConcorrentePercentualPromocional').value = produto.concorrente.percentualPromocional;
             document.getElementById('modalDiffPesquisa').value = parseFloat(produto.diffPesquisa);
         } else {
             editingProductId = null;
             resetCadastroForm();
         }
+
+        updateModalICDisplay();
     }
 }
 
@@ -519,6 +534,8 @@ function resetCadastroForm() {
 
     document.querySelectorAll('.upload-preview').forEach(preview => preview.remove());
     document.querySelectorAll('.upload-area').forEach(area => delete area.dataset.imageData);
+
+    updateModalICDisplay();
 }
 
 function openExportModal() {
@@ -535,6 +552,26 @@ function closeExportModal() {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
     }
+}
+
+function getInputNumericValue(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return null;
+
+    const parsed = parseFloat(element.value);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function updateModalICDisplay() {
+    const otimaTabela = getInputNumericValue('modalOtimaPrecoTabela');
+    const otimaPromocional = getInputNumericValue('modalOtimaPrecoPromocional');
+    const concorrenteTabela = getInputNumericValue('modalConcorrentePrecoTabela');
+    const concorrentePromocional = getInputNumericValue('modalConcorrentePrecoPromocional');
+
+    updateValue('modalOtimaIcRegular', formatIc(calculateIcPercentage(otimaTabela, concorrenteTabela)));
+    updateValue('modalOtimaIcPromocional', formatIc(calculateIcPercentage(otimaPromocional, concorrentePromocional)));
+    updateValue('modalConcorrenteIcRegular', formatIc(calculateIcPercentage(concorrenteTabela, otimaTabela)));
+    updateValue('modalConcorrenteIcPromocional', formatIc(calculateIcPercentage(concorrentePromocional, otimaPromocional)));
 }
 
 function handleCadastro(e) {
@@ -555,16 +592,12 @@ function handleCadastro(e) {
             nome: document.getElementById('modalOtimaNome').value,
             precoTabela: parseFloat(document.getElementById('modalOtimaPrecoTabela').value),
             precoPromocional: parseFloat(document.getElementById('modalOtimaPrecoPromocional').value),
-            percentualTabela: parseInt(document.getElementById('modalOtimaPercentualTabela').value),
-            percentualPromocional: parseInt(document.getElementById('modalOtimaPercentualPromocional').value),
             foto: uploadOtima ? uploadOtima.dataset.imageData || null : null
         },
         concorrente: {
             nome: document.getElementById('modalConcorrenteNome').value,
             precoTabela: parseFloat(document.getElementById('modalConcorrentePrecoTabela').value),
             precoPromocional: parseFloat(document.getElementById('modalConcorrentePrecoPromocional').value),
-            percentualTabela: parseInt(document.getElementById('modalConcorrentePercentualTabela').value),
-            percentualPromocional: parseInt(document.getElementById('modalConcorrentePercentualPromocional').value),
             foto: uploadConcorrente ? uploadConcorrente.dataset.imageData || null : null
         },
         diffPesquisa: document.getElementById('modalDiffPesquisa').value + '%'
@@ -625,8 +658,8 @@ function handleExport(format) {
 function exportToCSV(products) {
     const headers = [
         'Tipo', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
-        'IC de % Tabela Lider', 'IC de % Promocional Lider', 'Concorrente', 'Preço Tabela Concorrente',
-        'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
+        'IC REGULAR Lider', 'IC PROMOCIONAL Lider', 'Concorrente', 'Preço Tabela Concorrente',
+        'Preço Promocional Concorrente', 'IC REGULAR Concorrente', 'IC PROMOCIONAL Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -634,6 +667,11 @@ function exportToCSV(products) {
 
     products.forEach(produto => {
         const ano = normalizeAnoValue(produto.ano);
+        const icRegularLider = calculateIcPercentage(produto.otima.precoTabela, produto.concorrente.precoTabela);
+        const icPromocionalLider = calculateIcPercentage(produto.otima.precoPromocional, produto.concorrente.precoPromocional);
+        const icRegularConcorrente = calculateIcPercentage(produto.concorrente.precoTabela, produto.otima.precoTabela);
+        const icPromocionalConcorrente = calculateIcPercentage(produto.concorrente.precoPromocional, produto.otima.precoPromocional);
+
         const row = [
             produto.tipo,
             produto.mes,
@@ -642,13 +680,13 @@ function exportToCSV(products) {
             `"${produto.otima.nome}"`,
             produto.otima.precoTabela,
             produto.otima.precoPromocional,
-            produto.otima.percentualTabela,
-            produto.otima.percentualPromocional,
+            formatIc(icRegularLider),
+            formatIc(icPromocionalLider),
             `"${produto.concorrente.nome}"`,
             produto.concorrente.precoTabela,
             produto.concorrente.precoPromocional,
-            produto.concorrente.percentualTabela,
-            produto.concorrente.percentualPromocional,
+            formatIc(icRegularConcorrente),
+            formatIc(icPromocionalConcorrente),
             produto.diffPesquisa,
             `"${produto.pesquisador}"`,
             produto.record
@@ -662,8 +700,8 @@ function exportToCSV(products) {
 function exportToExcel(products) {
     const headers = [
         'Tipo', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
-        'IC de % Tabela Lider', 'IC de % Promocional Lider', 'Concorrente', 'Preço Tabela Concorrente',
-        'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
+        'IC REGULAR Lider', 'IC PROMOCIONAL Lider', 'Concorrente', 'Preço Tabela Concorrente',
+        'Preço Promocional Concorrente', 'IC REGULAR Concorrente', 'IC PROMOCIONAL Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
     ];
 
@@ -671,6 +709,11 @@ function exportToExcel(products) {
 
     products.forEach(produto => {
         const ano = normalizeAnoValue(produto.ano);
+        const icRegularLider = calculateIcPercentage(produto.otima.precoTabela, produto.concorrente.precoTabela);
+        const icPromocionalLider = calculateIcPercentage(produto.otima.precoPromocional, produto.concorrente.precoPromocional);
+        const icRegularConcorrente = calculateIcPercentage(produto.concorrente.precoTabela, produto.otima.precoTabela);
+        const icPromocionalConcorrente = calculateIcPercentage(produto.concorrente.precoPromocional, produto.otima.precoPromocional);
+
         const row = [
             produto.tipo,
             produto.mes,
@@ -679,13 +722,13 @@ function exportToExcel(products) {
             produto.otima.nome,
             produto.otima.precoTabela,
             produto.otima.precoPromocional,
-            produto.otima.percentualTabela,
-            produto.otima.percentualPromocional,
+            formatIc(icRegularLider),
+            formatIc(icPromocionalLider),
             produto.concorrente.nome,
             produto.concorrente.precoTabela,
             produto.concorrente.precoPromocional,
-            produto.concorrente.percentualTabela,
-            produto.concorrente.percentualPromocional,
+            formatIc(icRegularConcorrente),
+            formatIc(icPromocionalConcorrente),
             produto.diffPesquisa,
             produto.pesquisador,
             produto.record
@@ -825,7 +868,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeCadastroModal);
     if (exportModalCloseBtn) exportModalCloseBtn.addEventListener('click', closeExportModal);
     if (cadastroForm) cadastroForm.addEventListener('submit', handleCadastro);
-    
+
+    ['modalOtimaPrecoTabela', 'modalOtimaPrecoPromocional', 'modalConcorrentePrecoTabela', 'modalConcorrentePrecoPromocional']
+        .forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', updateModalICDisplay);
+            }
+        });
+
     // Export option events
     document.querySelectorAll('.export-option').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -878,8 +929,9 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDisplay();
     updateTable();
     updateExportInfo();
-    
-console.log('Dashboard inicializado com sucesso!');
+    updateModalICDisplay();
+
+    console.log('Dashboard inicializado com sucesso!');
 });
 
 if (typeof module !== 'undefined' && module.exports) {
