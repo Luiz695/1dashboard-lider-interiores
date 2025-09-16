@@ -1168,6 +1168,10 @@ select.form-control {
   margin-bottom: var(--space-16);
 }
 
+.form-row--single {
+  grid-template-columns: 1fr;
+}
+
 .form-row:last-child {
   margin-bottom: 0;
 }
