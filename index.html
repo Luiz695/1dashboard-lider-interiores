@@ -10,22 +10,26 @@
     <div class="dashboard">
         <!-- Header -->
         <header class="dashboard-header">
-            <div class="header-left">
-                <h1>Dashboard de Análise - Produtos</h1>
-                <span class="item-count" id="itemCount">3 ITENS</span>
+            <div class="dashboard-header__top">
+                <div class="header-left">
+                    <h1>Dashboard de Análise - Produtos</h1>
+                    <span class="item-count" id="itemCount">3 ITENS</span>
+                </div>
+                <div class="header-right">
+                    <button class="nav-btn" id="prevBtn" aria-label="Anterior">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15,18 9,12 15,6"></polyline>
+                        </svg>
+                    </button>
+                    <button class="nav-btn" id="nextBtn" aria-label="Próximo">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9,18 15,12 9,6"></polyline>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <div class="header-right">
-                <button class="nav-btn" id="prevBtn" aria-label="Anterior">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15,18 9,12 15,6"></polyline>
-                    </svg>
-                </button>
-                <button class="nav-btn" id="nextBtn" aria-label="Próximo">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9,18 15,12 9,6"></polyline>
-                    </svg>
-                </button>
-            </div>
+            <!-- Banner opcional: insira conteúdo dinâmico conforme necessário -->
+            <div class="dashboard-banner" id="dashboardBanner" aria-live="polite" aria-atomic="true"></div>
         </header>
 
         <!-- Filters Section -->
