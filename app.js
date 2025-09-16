@@ -1,5 +1,7 @@
 // Dashboard Application - Simplified Version
-let produtos = [
+const STORAGE_KEY = 'dashboardProdutos';
+
+const defaultProdutos = [
     {
         id: 1,
         tipo: "Cadeira",
@@ -77,6 +79,45 @@ let produtos = [
     }
 ];
 
+function cloneProdutos(data) {
+    return data.map(produto => ({
+        ...produto,
+        otima: { ...produto.otima },
+        concorrente: { ...produto.concorrente }
+    }));
+}
+
+function loadProdutos() {
+    if (typeof localStorage !== 'undefined') {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    return cloneProdutos(parsed);
+                }
+            }
+        } catch (error) {
+            console.warn('Não foi possível carregar os produtos do armazenamento local.', error);
+        }
+    }
+
+    return cloneProdutos(defaultProdutos);
+}
+
+function saveProdutos(produtosParaSalvar) {
+    if (typeof localStorage === 'undefined') return;
+
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(produtosParaSalvar));
+    } catch (error) {
+        console.warn('Não foi possível salvar os produtos no armazenamento local.', error);
+    }
+}
+
+let produtos = loadProdutos();
+let produtosFiltrados = produtos.slice();
+
 const filtros = {
     tipos: ["Todos", "Cadeira", "Poltrona", "Banqueta", "Mesa"],
     meses: ["Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
@@ -84,7 +125,7 @@ const filtros = {
 };
 
 let currentProductIndex = 0;
-let nextId = 4;
+let nextId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0) + 1;
 let editingProductId = null;
 
 // Utility Functions
@@ -129,11 +170,7 @@ function setupFilters() {
     }
 
     if (concorrenteFilter) {
-        concorrenteFilter.innerHTML = '<option value="Todos">Todos</option>';
-        const concorrentes = [...new Set(produtos.map(p => p.concorrente.nome))];
-        concorrentes.forEach(nome => {
-            concorrenteFilter.innerHTML += `<option value="${nome}">${nome}</option>`;
-        });
+        refreshConcorrenteFilterOptions(false);
     }
 
     // Populate modal filters
@@ -159,15 +196,69 @@ function setupFilters() {
     }
 }
 
-function updateDisplay() {
-    if (produtos.length === 0) return;
+function refreshConcorrenteFilterOptions(preserveSelection = true) {
+    const concorrenteFilter = document.getElementById('concorrenteFilter');
+    if (!concorrenteFilter) return;
 
-    const produto = produtos[currentProductIndex];
-    
+    const currentValue = preserveSelection ? concorrenteFilter.value : 'Todos';
+    const concorrentes = [...new Set(produtos.map(p => p.concorrente.nome))];
+
+    concorrenteFilter.innerHTML = '<option value="Todos">Todos</option>';
+    concorrentes.forEach(nome => {
+        const option = document.createElement('option');
+        option.value = nome;
+        option.textContent = nome;
+        concorrenteFilter.appendChild(option);
+    });
+
+    if (currentValue && (currentValue === 'Todos' || concorrentes.includes(currentValue))) {
+        concorrenteFilter.value = currentValue;
+    }
+}
+
+function getActiveProducts() {
+    return Array.isArray(produtosFiltrados) ? produtosFiltrados : produtos;
+}
+
+function clearProductDisplay() {
+    updateValue('otimaName', 'Nenhum produto selecionado');
+    updateValue('concorrenteName', 'Nenhum concorrente selecionado');
+
+    const valueFields = [
+        'otimaPrecoTabela',
+        'otimaPrecoPromocional',
+        'otimaPercentualTabela',
+        'otimaPercentualPromocional',
+        'concorrentePrecoTabela',
+        'concorrentePrecoPromocional',
+        'concorrentePercentualTabela',
+        'concorrentePercentualPromocional'
+    ];
+
+    valueFields.forEach(fieldId => updateValue(fieldId, '--'));
+    updateProductImage('otimaImage', null);
+    updateProductImage('concorrenteImage', null);
+}
+
+function updateDisplay() {
+    const produtosAtivos = getActiveProducts();
+
+    if (!produtosAtivos.length) {
+        currentProductIndex = 0;
+        clearProductDisplay();
+        return;
+    }
+
+    if (currentProductIndex >= produtosAtivos.length) {
+        currentProductIndex = 0;
+    }
+
+    const produto = produtosAtivos[currentProductIndex];
+
     // Update product names
     const otimaName = document.getElementById('otimaName');
     const concorrenteName = document.getElementById('concorrenteName');
-    
+
     if (otimaName) otimaName.textContent = produto.otima.nome;
     if (concorrenteName) concorrenteName.textContent = produto.concorrente.nome;
 
@@ -211,14 +302,18 @@ function updateProductImage(imageId, src) {
 }
 
 function navigateNext() {
-    if (produtos.length === 0) return;
-    currentProductIndex = (currentProductIndex + 1) % produtos.length;
+    const produtosAtivos = getActiveProducts();
+    if (!produtosAtivos.length) return;
+
+    currentProductIndex = (currentProductIndex + 1) % produtosAtivos.length;
     updateDisplay();
 }
 
 function navigatePrevious() {
-    if (produtos.length === 0) return;
-    currentProductIndex = currentProductIndex === 0 ? produtos.length - 1 : currentProductIndex - 1;
+    const produtosAtivos = getActiveProducts();
+    if (!produtosAtivos.length) return;
+
+    currentProductIndex = currentProductIndex === 0 ? produtosAtivos.length - 1 : currentProductIndex - 1;
     updateDisplay();
 }
 
@@ -242,14 +337,14 @@ function getFilteredProducts() {
 }
 
 function updateTable() {
-    const filteredProducts = getFilteredProducts();
+    const produtosAtivos = getActiveProducts();
     const tbody = document.getElementById('tableBody');
-    
+
     if (!tbody) return;
-    
+
     tbody.innerHTML = '';
-    
-    filteredProducts.forEach(produto => {
+
+    produtosAtivos.forEach(produto => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${produto.tipo}</td>
@@ -267,7 +362,7 @@ function updateTable() {
 }
 
 function updateExportInfo() {
-    const filteredCount = getFilteredProducts().length;
+    const filteredCount = getActiveProducts().length;
     const exportInfo = document.getElementById('exportInfo');
     const itemCount = document.getElementById('itemCount');
 
@@ -276,6 +371,9 @@ function updateExportInfo() {
 }
 
 function applyFilters() {
+    produtosFiltrados = getFilteredProducts();
+    currentProductIndex = 0;
+    updateDisplay();
     updateTable();
     updateExportInfo();
 }
@@ -400,8 +498,9 @@ function handleCadastro(e) {
         showSuccessMessage('Item cadastrado com sucesso!');
     }
 
-    updateTable();
-    updateExportInfo();
+    saveProdutos(produtos);
+    refreshConcorrenteFilterOptions();
+    applyFilters();
     closeCadastroModal();
 }
 
@@ -422,8 +521,8 @@ function showSuccessMessage(message) {
 }
 
 function handleExport(format) {
-    const filteredProducts = getFilteredProducts();
-    
+    const filteredProducts = getActiveProducts();
+
     if (filteredProducts.length === 0) {
         alert('Nenhum item para exportar com os filtros aplicados.');
         return;
