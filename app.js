@@ -6,6 +6,7 @@ const defaultProdutos = [
         id: 1,
         tipo: "Cadeira",
         mes: "Agosto",
+        ano: 2023,
         localizacao: "Belo Horizonte",
         otima: {
             nome: "Cadeira Executiva Premium",
@@ -31,6 +32,7 @@ const defaultProdutos = [
         id: 2,
         tipo: "Poltrona",
         mes: "Agosto",
+        ano: 2023,
         localizacao: "São Paulo",
         otima: {
             nome: "Poltrona Reclinável Luxo",
@@ -56,6 +58,7 @@ const defaultProdutos = [
         id: 3,
         tipo: "Cadeira",
         mes: "Setembro",
+        ano: 2024,
         localizacao: "Belo Horizonte",
         otima: {
             nome: "Cadeira Gamer Pro",
@@ -79,9 +82,19 @@ const defaultProdutos = [
     }
 ];
 
+function normalizeAnoValue(value) {
+    if (value === undefined || value === null) {
+        return null;
+    }
+
+    const parsed = parseInt(String(value).trim(), 10);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
 function cloneProdutos(data) {
     return data.map(produto => ({
         ...produto,
+        ano: normalizeAnoValue(produto.ano),
         otima: { ...produto.otima },
         concorrente: { ...produto.concorrente }
     }));
@@ -136,11 +149,34 @@ function formatCurrency(value) {
     }).format(value);
 }
 
+function formatPeriodo(produto) {
+    const mes = typeof produto.mes === 'string' ? produto.mes.trim() : produto.mes;
+    const ano = normalizeAnoValue(produto.ano);
+
+    const hasMes = !!mes;
+    const hasAno = ano !== null;
+
+    if (hasMes && hasAno) {
+        return `${mes} de ${ano}`;
+    }
+
+    if (hasMes) {
+        return mes;
+    }
+
+    if (hasAno) {
+        return String(ano);
+    }
+
+    return '--';
+}
+
 function setupFilters() {
     console.log('Configurando filtros...');
-    
+
     const tipoFilter = document.getElementById('tipoFilter');
     const mesFilter = document.getElementById('mesFilter');
+    const anoFilter = document.getElementById('anoFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
     const concorrenteFilter = document.getElementById('concorrenteFilter');
     const modalTipo = document.getElementById('modalTipo');
@@ -160,6 +196,10 @@ function setupFilters() {
         filtros.meses.slice(1).forEach(mes => {
             mesFilter.innerHTML += `<option value="${mes}">${mes}</option>`;
         });
+    }
+
+    if (anoFilter) {
+        refreshAnoFilterOptions(false);
     }
 
     if (localizacaoFilter) {
@@ -213,6 +253,33 @@ function refreshConcorrenteFilterOptions(preserveSelection = true) {
 
     if (currentValue && (currentValue === 'Todos' || concorrentes.includes(currentValue))) {
         concorrenteFilter.value = currentValue;
+    }
+}
+
+function refreshAnoFilterOptions(preserveSelection = true) {
+    const anoFilter = document.getElementById('anoFilter');
+    if (!anoFilter) return;
+
+    const currentValue = preserveSelection ? anoFilter.value : 'Todos';
+    const anos = produtos
+        .map(produto => normalizeAnoValue(produto.ano))
+        .filter(ano => ano !== null);
+
+    const uniqueAnos = [...new Set(anos)].sort((a, b) => a - b);
+
+    anoFilter.innerHTML = '<option value="Todos">Todos</option>';
+    uniqueAnos.forEach(ano => {
+        const option = document.createElement('option');
+        option.value = String(ano);
+        option.textContent = ano;
+        anoFilter.appendChild(option);
+    });
+
+    const normalizedCurrent = currentValue === 'Todos' ? 'Todos' : String(normalizeAnoValue(currentValue));
+    const availableValues = uniqueAnos.map(ano => String(ano));
+
+    if (normalizedCurrent && (normalizedCurrent === 'Todos' || availableValues.includes(normalizedCurrent))) {
+        anoFilter.value = normalizedCurrent;
     }
 }
 
@@ -320,17 +387,21 @@ function navigatePrevious() {
 function getFilteredProducts() {
     const tipoFilter = document.getElementById('tipoFilter');
     const mesFilter = document.getElementById('mesFilter');
+    const anoFilter = document.getElementById('anoFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
     const concorrenteFilter = document.getElementById('concorrenteFilter');
 
     const tipoValue = tipoFilter ? tipoFilter.value : 'Todos';
     const mesValue = mesFilter ? mesFilter.value : 'Todos';
+    const anoValue = anoFilter ? anoFilter.value : 'Todos';
     const localizacaoValue = localizacaoFilter ? localizacaoFilter.value : 'Todos';
     const concorrenteValue = concorrenteFilter ? concorrenteFilter.value : 'Todos';
 
     return produtos.filter(produto => {
+        const produtoAno = normalizeAnoValue(produto.ano);
         return (tipoValue === 'Todos' || produto.tipo === tipoValue) &&
                (mesValue === 'Todos' || produto.mes === mesValue) &&
+               (anoValue === 'Todos' || (produtoAno !== null && String(produtoAno) === anoValue)) &&
                (localizacaoValue === 'Todos' || produto.localizacao === localizacaoValue) &&
                (concorrenteValue === 'Todos' || produto.concorrente.nome === concorrenteValue);
     });
@@ -346,9 +417,10 @@ function updateTable() {
 
     produtosAtivos.forEach(produto => {
         const row = document.createElement('tr');
+        const periodo = formatPeriodo(produto);
         row.innerHTML = `
             <td>${produto.tipo}</td>
-            <td>${produto.mes}</td>
+            <td>${periodo}</td>
             <td>${produto.localizacao}</td>
             <td>${produto.otima.nome}</td>
             <td>${produto.concorrente.nome}</td>
@@ -381,11 +453,13 @@ function applyFilters() {
 function clearFilters() {
     const tipoFilter = document.getElementById('tipoFilter');
     const mesFilter = document.getElementById('mesFilter');
+    const anoFilter = document.getElementById('anoFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
     const concorrenteFilter = document.getElementById('concorrenteFilter');
 
     if (tipoFilter) tipoFilter.value = 'Todos';
     if (mesFilter) mesFilter.value = 'Todos';
+    if (anoFilter) anoFilter.value = 'Todos';
     if (localizacaoFilter) localizacaoFilter.value = 'Todos';
     if (concorrenteFilter) concorrenteFilter.value = 'Todos';
 
@@ -402,6 +476,10 @@ function openCadastroModal(produto = null) {
             editingProductId = produto.id;
             document.getElementById('modalTipo').value = produto.tipo;
             document.getElementById('modalMes').value = produto.mes;
+            const modalAno = document.getElementById('modalAno');
+            if (modalAno) {
+                modalAno.value = produto.ano !== null && produto.ano !== undefined ? produto.ano : '';
+            }
             document.getElementById('modalLocalizacao').value = produto.localizacao;
             document.getElementById('modalPesquisador').value = produto.pesquisador;
             document.getElementById('modalOtimaNome').value = produto.otima.nome;
@@ -435,7 +513,10 @@ function closeCadastroModal() {
 function resetCadastroForm() {
     const form = document.getElementById('cadastroForm');
     if (form) form.reset();
-    
+
+    const modalAno = document.getElementById('modalAno');
+    if (modalAno) modalAno.value = '';
+
     document.querySelectorAll('.upload-preview').forEach(preview => preview.remove());
     document.querySelectorAll('.upload-area').forEach(area => delete area.dataset.imageData);
 }
@@ -458,13 +539,16 @@ function closeExportModal() {
 
 function handleCadastro(e) {
     e.preventDefault();
-    
+
     const uploadOtima = document.getElementById('uploadOtima');
     const uploadConcorrente = document.getElementById('uploadConcorrente');
+    const anoInput = document.getElementById('modalAno');
+    const anoValue = anoInput ? normalizeAnoValue(anoInput.value) : null;
 
     const produtoData = {
         tipo: document.getElementById('modalTipo').value,
         mes: document.getElementById('modalMes').value,
+        ano: anoValue,
         localizacao: document.getElementById('modalLocalizacao').value,
         pesquisador: document.getElementById('modalPesquisador').value,
         otima: {
@@ -500,6 +584,7 @@ function handleCadastro(e) {
 
     saveProdutos(produtos);
     refreshConcorrenteFilterOptions();
+    refreshAnoFilterOptions();
     applyFilters();
     closeCadastroModal();
 }
@@ -539,7 +624,7 @@ function handleExport(format) {
 
 function exportToCSV(products) {
     const headers = [
-        'Tipo', 'Mês', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
+        'Tipo', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
         'IC de % Tabela Lider', 'IC de % Promocional Lider', 'Concorrente', 'Preço Tabela Concorrente',
         'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
@@ -548,9 +633,11 @@ function exportToCSV(products) {
     let csv = headers.join(',') + '\n';
 
     products.forEach(produto => {
+        const ano = normalizeAnoValue(produto.ano);
         const row = [
             produto.tipo,
             produto.mes,
+            ano !== null ? ano : '',
             produto.localizacao,
             `"${produto.otima.nome}"`,
             produto.otima.precoTabela,
@@ -574,7 +661,7 @@ function exportToCSV(products) {
 
 function exportToExcel(products) {
     const headers = [
-        'Tipo', 'Mês', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
+        'Tipo', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
         'IC de % Tabela Lider', 'IC de % Promocional Lider', 'Concorrente', 'Preço Tabela Concorrente',
         'Preço Promocional Concorrente', 'IC de % Tabela Concorrente', 'IC de % Promocional Concorrente', 'Diff Pesquisa',
         'Pesquisador', 'Record'
@@ -583,9 +670,11 @@ function exportToExcel(products) {
     let tsv = headers.join('\t') + '\n';
 
     products.forEach(produto => {
+        const ano = normalizeAnoValue(produto.ano);
         const row = [
             produto.tipo,
             produto.mes,
+            ano !== null ? ano : '',
             produto.localizacao,
             produto.otima.nome,
             produto.otima.precoTabela,

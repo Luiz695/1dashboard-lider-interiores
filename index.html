@@ -44,6 +44,12 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label for="anoFilter" class="filter-label">Ano</label>
+                    <select id="anoFilter" class="form-control">
+                        <option value="Todos">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label for="localizacaoFilter" class="filter-label">Localização</label>
                     <select id="localizacaoFilter" class="form-control">
                         <option value="Todos">Todos</option>
@@ -164,7 +170,7 @@
                         <thead>
                             <tr>
                                 <th>Tipo</th>
-                                <th>Mês</th>
+                                <th>Período</th>
                                 <th>Localização</th>
                                 <th>Produto Lider</th>
                                 <th>Concorrente</th>
@@ -216,11 +222,17 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group">
+                                <label for="modalAno" class="form-label">Ano da Pesquisa *</label>
+                                <input type="number" id="modalAno" class="form-control" required min="2000" placeholder="2024">
+                            </div>
+                            <div class="form-group">
                                 <label for="modalLocalizacao" class="form-label">Localização *</label>
                                 <select id="modalLocalizacao" class="form-control" required>
                                     <option value="">Selecione...</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="form-row form-row--single">
                             <div class="form-group">
                                 <label for="modalPesquisador" class="form-label">Pesquisador *</label>
                                 <input type="text" id="modalPesquisador" class="form-control" required placeholder="Nome do pesquisador">
