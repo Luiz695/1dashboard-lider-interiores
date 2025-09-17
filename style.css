@@ -153,7 +153,7 @@
   --container-md: 768px;
   --container-lg: 1024px;
   --container-xl: 1280px;
-  --nav-btn-size: 56px;
+  --nav-btn-size: 48px;
 }
 
 /* Dark mode colors */
@@ -888,21 +888,27 @@ select.form-control {
   min-height: var(--nav-btn-size);
   padding: 0;
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text);
+  box-shadow: var(--shadow-sm);
 }
 
 .nav-btn:hover {
   background-color: var(--color-secondary-hover);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .nav-btn:active {
   background-color: var(--color-secondary-active);
   transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .nav-btn:focus-visible {
@@ -1502,7 +1508,7 @@ select.form-control {
 /* Responsive Design */
 @media (max-width: 768px) {
   .nav-btn {
-    --nav-btn-size: 48px;
+    --nav-btn-size: 44px;
   }
 
   .nav-btn svg {
@@ -1611,7 +1617,7 @@ select.form-control {
 
 @media (max-width: 480px) {
   .nav-btn {
-    --nav-btn-size: 44px;
+    --nav-btn-size: 40px;
   }
 
   .nav-btn svg {
