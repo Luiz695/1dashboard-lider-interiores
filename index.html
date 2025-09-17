@@ -111,6 +111,12 @@
                                     <h3>IC PROMOCIONAL</h3>
                                     <p class="percentage" id="otimaIcPromocional">—</p>
                                 </div>
+                                <div class="info-card">
+                                    <h3>Desconto Política</h3>
+                                    <p class="percentage">
+                                        <span class="discount-indicator" id="otimaDescontoPolitica">—</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -145,6 +151,12 @@
                                     <h3>IC PROMOCIONAL</h3>
                                     <p class="percentage" id="concorrenteIcPromocional">—</p>
                                 </div>
+                                <div class="info-card">
+                                    <h3>Desconto Concorrente</h3>
+                                    <p class="percentage">
+                                        <span class="discount-indicator" id="concorrenteDesconto">—</span>
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -178,7 +190,8 @@
                                 <th>Localização</th>
                                 <th>Produto Lider</th>
                                 <th>Concorrente</th>
-                                <th>Diff Pesquisa</th>
+                                <th>Desconto Política</th>
+                                <th>Desconto Concorrente</th>
                                 <th>Pesquisador</th>
                                 <th>Record</th>
                                 <th>Ações</th>
@@ -285,6 +298,14 @@
                                 <p class="form-static" id="modalOtimaIcPromocional">—</p>
                             </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Desconto Política</label>
+                                <p class="form-static">
+                                    <span class="discount-indicator" id="modalOtimaDescontoPolitica">—</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Produto Concorrente -->
@@ -328,8 +349,10 @@
                                 <p class="form-static" id="modalConcorrenteIcPromocional">—</p>
                             </div>
                             <div class="form-group">
-                                <label for="modalDiffPesquisa" class="form-label">Diferença de Pesquisa (%) *</label>
-                                <input type="number" id="modalDiffPesquisa" class="form-control" required placeholder="0">
+                                <label class="form-label">Desconto Concorrente</label>
+                                <p class="form-static">
+                                    <span class="discount-indicator" id="modalConcorrenteDesconto">—</span>
+                                </p>
                             </div>
                         </div>
                     </div>
