@@ -104,12 +104,12 @@
                                     <p class="price promotional" data-value="7500" id="otimaPrecoPromocional">R$ 7.500,00</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>IC de % Tabela</h3>
-                                    <p class="percentage" data-value="95" id="otimaPercentualTabela">95%</p>
+                                    <h3>IC REGULAR</h3>
+                                    <p class="percentage" id="otimaIcRegular">—</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>IC de % Promocional</h3>
-                                    <p class="percentage" data-value="30" id="otimaPercentualPromocional">30%</p>
+                                    <h3>IC PROMOCIONAL</h3>
+                                    <p class="percentage" id="otimaIcPromocional">—</p>
                                 </div>
                             </div>
                         </div>
@@ -138,12 +138,12 @@
                                     <p class="price promotional" data-value="9250" id="concorrentePrecoPromocional">R$ 9.250,00</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>IC de % Tabela</h3>
-                                    <p class="percentage" data-value="90" id="concorrentePercentualTabela">90%</p>
+                                    <h3>IC REGULAR</h3>
+                                    <p class="percentage" id="concorrenteIcRegular">—</p>
                                 </div>
                                 <div class="info-card">
-                                    <h3>IC de % Promocional</h3>
-                                    <p class="percentage" data-value="95" id="concorrentePercentualPromocional">95%</p>
+                                    <h3>IC PROMOCIONAL</h3>
+                                    <p class="percentage" id="concorrenteIcPromocional">—</p>
                                 </div>
                             </div>
                         </div>
@@ -275,14 +275,14 @@
                                 <input type="number" id="modalOtimaPrecoPromocional" class="form-control" step="0.01" required placeholder="0,00">
                             </div>
                             <div class="form-group">
-                                <label for="modalOtimaPercentualTabela" class="form-label">IC de % Tabela *</label>
-                                <input type="number" id="modalOtimaPercentualTabela" class="form-control" min="0" max="100" required placeholder="0">
+                                <label class="form-label">IC REGULAR</label>
+                                <p class="form-static" id="modalOtimaIcRegular">—</p>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="modalOtimaPercentualPromocional" class="form-label">IC de % Promocional *</label>
-                                <input type="number" id="modalOtimaPercentualPromocional" class="form-control" min="0" max="100" required placeholder="0">
+                                <label class="form-label">IC PROMOCIONAL</label>
+                                <p class="form-static" id="modalOtimaIcPromocional">—</p>
                             </div>
                         </div>
                     </div>
@@ -318,14 +318,14 @@
                                 <input type="number" id="modalConcorrentePrecoPromocional" class="form-control" step="0.01" required placeholder="0,00">
                             </div>
                             <div class="form-group">
-                                <label for="modalConcorrentePercentualTabela" class="form-label">IC de % Tabela *</label>
-                                <input type="number" id="modalConcorrentePercentualTabela" class="form-control" min="0" max="100" required placeholder="0">
+                                <label class="form-label">IC REGULAR</label>
+                                <p class="form-static" id="modalConcorrenteIcRegular">—</p>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="modalConcorrentePercentualPromocional" class="form-label">IC de % Promocional *</label>
-                                <input type="number" id="modalConcorrentePercentualPromocional" class="form-control" min="0" max="100" required placeholder="0">
+                                <label class="form-label">IC PROMOCIONAL</label>
+                                <p class="form-static" id="modalConcorrenteIcPromocional">—</p>
                             </div>
                             <div class="form-group">
                                 <label for="modalDiffPesquisa" class="form-label">Diferença de Pesquisa (%) *</label>

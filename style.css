@@ -521,6 +521,26 @@ select.form-control {
   margin-bottom: var(--space-16);
 }
 
+.form-static {
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  background-color: rgba(var(--color-espresso-700-rgb), 0.06);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-static {
+    border-color: var(--color-border-secondary, var(--color-border));
+    background-color: rgba(var(--color-border-secondary-rgb, 248, 217, 205), 0.14);
+    color: var(--color-text);
+  }
+}
+
 /* Card component */
 .card {
   background-color: var(--color-surface);
