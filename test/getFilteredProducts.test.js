@@ -15,7 +15,7 @@ function loadWithDOM(domHtml) {
 
 test('getFilteredProducts filters by linha de receita, month, year, and location', () => {
   const { getFilteredProducts } = loadWithDOM(`<!DOCTYPE html>
-    <select id="linhaReceitaFilter"><option value="SOFÁ">SOFÁ</option></select>
+    <select id="linhaReceitaFilter"><option value="ESTOFADOS">ESTOFADOS</option></select>
     <select id="mesFilter"><option value="Agosto">Agosto</option></select>
     <select id="anoFilter"><option value="2023">2023</option></select>
     <select id="localizacaoFilter"><option value="Belo Horizonte">Belo Horizonte</option></select>`);
