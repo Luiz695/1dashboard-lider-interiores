@@ -406,6 +406,36 @@
         </div>
     </div>
 
+    <!-- Modal de Exclusão -->
+    <div class="modal hidden" id="deleteModal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Excluir Item</h2>
+                <button class="modal-close" id="deleteModalCloseBtn" aria-label="Fechar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="deleteConfirmForm" class="delete-modal__form">
+                    <p class="delete-modal__description">
+                        Tem certeza de que deseja excluir este item? Essa ação não poderá ser desfeita.
+                    </p>
+                    <label for="deletePasswordInput" class="form-label">Senha de confirmação</label>
+                    <input type="password" id="deletePasswordInput" class="form-control" placeholder="Digite a senha de exclusão" autocomplete="current-password" required>
+                    <p class="form-feedback" id="deletePasswordError" aria-live="assertive"></p>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--outline" id="deleteModalCancelBtn">Cancelar</button>
+                <button type="submit" form="deleteConfirmForm" class="btn btn--danger" id="deleteModalConfirmBtn">Excluir Item</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
