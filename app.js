@@ -142,6 +142,231 @@ function normalizeAnoValue(value) {
     return Number.isNaN(parsed) ? null : parsed;
 }
 
+function normalizeCsvHeaderValue(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '');
+}
+
+const csvFieldLabels = {
+    tipo: 'Linha de Receita/Tipo',
+    mes: 'Mês',
+    ano: 'Ano',
+    localizacao: 'Localização',
+    pesquisador: 'Pesquisador',
+    record: 'Record',
+    otimaNome: 'Produto Líder',
+    otimaPrecoTabela: 'Preço Tabela Líder',
+    otimaPrecoPromocional: 'Preço Promocional Líder',
+    concorrenteNome: 'Concorrente',
+    concorrentePrecoTabela: 'Preço Tabela Concorrente',
+    concorrentePrecoPromocional: 'Preço Promocional Concorrente'
+};
+
+const csvColumnAliases = {
+    tipo: ['tipo', 'linhareceita', 'linha_receita', 'linha de receita'],
+    mes: ['mes', 'mesref', 'mesreferencia'],
+    ano: ['ano'],
+    localizacao: ['localizacao', 'localidade', 'cidade'],
+    pesquisador: ['pesquisador', 'responsavel', 'responsável'],
+    record: ['record', 'codigo', 'código'],
+    otimaNome: ['produtolider', 'produto lider', 'produtootima', 'produtoótima', 'lider'],
+    otimaPrecoTabela: ['precotabelalider', 'preco tabela lider', 'precotabelaotima'],
+    otimaPrecoPromocional: ['precopromocionallider', 'preco promocional lider', 'precopromocionalotima'],
+    concorrenteNome: ['concorrente', 'produtoconcorrente'],
+    concorrentePrecoTabela: ['precotabelaconcorrente', 'preco tabela concorrente'],
+    concorrentePrecoPromocional: ['precopromocionalconcorrente', 'preco promocional concorrente']
+};
+
+const requiredCsvFields = [
+    'tipo',
+    'mes',
+    'ano',
+    'localizacao',
+    'otimaNome',
+    'otimaPrecoTabela',
+    'otimaPrecoPromocional',
+    'concorrenteNome',
+    'concorrentePrecoTabela',
+    'concorrentePrecoPromocional'
+];
+
+function parseCsvContent(text) {
+    const sanitizedText = String(text || '').replace(/^\uFEFF/, '');
+    const rows = [];
+    let currentValue = '';
+    let currentRow = [];
+    let insideQuotes = false;
+
+    for (let i = 0; i < sanitizedText.length; i++) {
+        const char = sanitizedText[i];
+
+        if (char === '"') {
+            if (insideQuotes && sanitizedText[i + 1] === '"') {
+                currentValue += '"';
+                i++;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+        } else if (char === ',' && !insideQuotes) {
+            currentRow.push(currentValue);
+            currentValue = '';
+        } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+            if (char === '\r' && sanitizedText[i + 1] === '\n') {
+                i++;
+            }
+            currentRow.push(currentValue);
+            rows.push(currentRow);
+            currentRow = [];
+            currentValue = '';
+        } else {
+            currentValue += char;
+        }
+    }
+
+    if (currentValue !== '' || currentRow.length) {
+        currentRow.push(currentValue);
+        rows.push(currentRow);
+    }
+
+    return rows.map(row => row.map(cell => String(cell || '').trim()));
+}
+
+function mapCsvColumns(headerRow) {
+    const normalizedHeaderMap = {};
+
+    headerRow.forEach((header, index) => {
+        const normalized = normalizeCsvHeaderValue(header);
+        if (!normalized) return;
+        if (!normalizedHeaderMap[normalized]) {
+            normalizedHeaderMap[normalized] = { index, header };
+        }
+    });
+
+    const mapping = {};
+
+    Object.entries(csvColumnAliases).forEach(([field, aliases]) => {
+        for (const alias of aliases) {
+            const normalizedAlias = normalizeCsvHeaderValue(alias);
+            if (normalizedHeaderMap[normalizedAlias]) {
+                mapping[field] = {
+                    index: normalizedHeaderMap[normalizedAlias].index,
+                    header: normalizedHeaderMap[normalizedAlias].header
+                };
+                break;
+            }
+        }
+    });
+
+    const missingFields = requiredCsvFields.filter(field => !mapping[field]);
+    if (missingFields.length) {
+        const missingLabels = missingFields.map(field => csvFieldLabels[field] || field);
+        throw new Error(`Colunas obrigatórias ausentes: ${missingLabels.join(', ')}`);
+    }
+
+    return mapping;
+}
+
+function parseCsvNumber(rawValue, fieldLabel, rowNumber) {
+    const sanitized = String(rawValue || '')
+        .replace(/\./g, '')
+        .replace(/,/g, '.')
+        .trim();
+
+    if (!sanitized) {
+        throw new Error(`O campo "${fieldLabel}" é obrigatório na linha ${rowNumber}.`);
+    }
+
+    const parsed = parseFloat(sanitized);
+    if (!Number.isFinite(parsed)) {
+        throw new Error(`Valor inválido para "${fieldLabel}" na linha ${rowNumber}.`);
+    }
+
+    return parsed;
+}
+
+function getCsvFieldValue(row, mapping, field) {
+    if (!mapping[field]) return '';
+    const value = row[mapping[field].index];
+    return typeof value === 'string' ? value.trim() : String(value || '').trim();
+}
+
+function requireCsvFieldValue(row, mapping, field, rowNumber) {
+    const value = getCsvFieldValue(row, mapping, field);
+    if (!value) {
+        throw new Error(`O campo "${csvFieldLabels[field] || field}" é obrigatório na linha ${rowNumber}.`);
+    }
+    return value;
+}
+
+function buildProdutoFromCsvRow(row, mapping, rowNumber, nextIdentifier) {
+    const tipo = requireCsvFieldValue(row, mapping, 'tipo', rowNumber);
+    const mes = requireCsvFieldValue(row, mapping, 'mes', rowNumber);
+    const anoBruto = requireCsvFieldValue(row, mapping, 'ano', rowNumber);
+    const anoNormalizado = normalizeAnoValue(anoBruto);
+
+    if (anoNormalizado === null) {
+        throw new Error(`Valor inválido para "${csvFieldLabels.ano}" na linha ${rowNumber}.`);
+    }
+
+    const localizacao = requireCsvFieldValue(row, mapping, 'localizacao', rowNumber);
+    const pesquisador = getCsvFieldValue(row, mapping, 'pesquisador');
+    const record = getCsvFieldValue(row, mapping, 'record');
+
+    const otimaNome = requireCsvFieldValue(row, mapping, 'otimaNome', rowNumber);
+    const otimaPrecoTabela = parseCsvNumber(
+        requireCsvFieldValue(row, mapping, 'otimaPrecoTabela', rowNumber),
+        csvFieldLabels.otimaPrecoTabela,
+        rowNumber
+    );
+    const otimaPrecoPromocional = parseCsvNumber(
+        requireCsvFieldValue(row, mapping, 'otimaPrecoPromocional', rowNumber),
+        csvFieldLabels.otimaPrecoPromocional,
+        rowNumber
+    );
+
+    const concorrenteNome = requireCsvFieldValue(row, mapping, 'concorrenteNome', rowNumber);
+    const concorrentePrecoTabela = parseCsvNumber(
+        requireCsvFieldValue(row, mapping, 'concorrentePrecoTabela', rowNumber),
+        csvFieldLabels.concorrentePrecoTabela,
+        rowNumber
+    );
+    const concorrentePrecoPromocional = parseCsvNumber(
+        requireCsvFieldValue(row, mapping, 'concorrentePrecoPromocional', rowNumber),
+        csvFieldLabels.concorrentePrecoPromocional,
+        rowNumber
+    );
+
+    const novoProduto = {
+        id: nextIdentifier,
+        tipo,
+        mes,
+        ano: anoNormalizado,
+        localizacao,
+        pesquisador: pesquisador || '',
+        otima: {
+            nome: otimaNome,
+            precoTabela: otimaPrecoTabela,
+            precoPromocional: otimaPrecoPromocional,
+            foto: null
+        },
+        concorrente: {
+            nome: concorrenteNome,
+            precoTabela: concorrentePrecoTabela,
+            precoPromocional: concorrentePrecoPromocional,
+            foto: null
+        },
+        record: record || String(nextIdentifier).padStart(3, '0')
+    };
+
+    ensureProdutoDescontos(novoProduto);
+
+    return novoProduto;
+}
+
 function cloneProdutos(data) {
     return data.map(produto => {
         const { diffPesquisa, ...rest } = produto;
@@ -176,13 +401,24 @@ function loadProdutos() {
     return cloneProdutos(defaultProdutos);
 }
 
-function saveProdutos(produtosParaSalvar) {
-    if (typeof localStorage === 'undefined') return;
+function saveProdutos(produtosParaSalvar, { showFeedback = false } = {}) {
+    if (typeof localStorage === 'undefined') {
+        if (showFeedback) {
+            showSuccessMessage('Dados atualizados apenas durante esta sessão.', { variant: 'success' });
+        }
+        return false;
+    }
 
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(produtosParaSalvar));
+        if (showFeedback) {
+            showSuccessMessage('Dados salvos com sucesso!');
+        }
+        return true;
     } catch (error) {
         console.warn('Não foi possível salvar os produtos no armazenamento local.', error);
+        showSuccessMessage('Não foi possível salvar os produtos no armazenamento local.', { variant: 'error' });
+        return false;
     }
 }
 
@@ -362,12 +598,13 @@ function setupFilters() {
     }
 }
 
-function refreshConcorrenteFilterOptions(preserveSelection = true) {
+function refreshConcorrenteFilterOptions(preserveSelection = true, dataSource = produtos) {
     const concorrenteFilter = document.getElementById('concorrenteFilter');
     if (!concorrenteFilter) return;
 
     const currentValue = preserveSelection ? concorrenteFilter.value : 'Todos';
-    const concorrentes = [...new Set(produtos.map(p => p.concorrente.nome))];
+    const source = Array.isArray(dataSource) ? dataSource : produtos;
+    const concorrentes = [...new Set(source.map(p => p.concorrente?.nome).filter(Boolean))];
 
     concorrenteFilter.innerHTML = '<option value="Todos">Todos</option>';
     concorrentes.forEach(nome => {
@@ -580,12 +817,15 @@ function updateExportInfo() {
     if (itemCount) itemCount.textContent = `${filteredCount} ITENS`;
 }
 
-function applyFilters() {
+function applyFilters({ showFeedback = false } = {}) {
     produtosFiltrados = getFilteredProducts();
     currentProductIndex = 0;
     updateDisplay();
     updateTable();
     updateExportInfo();
+    if (showFeedback) {
+        showSuccessMessage('Filtros aplicados com sucesso!');
+    }
 }
 
 function clearFilters() {
@@ -755,9 +995,15 @@ function handleCadastro(e) {
     closeCadastroModal();
 }
 
-function showSuccessMessage(message) {
+function showSuccessMessage(message, { variant = 'success' } = {}) {
+    if (typeof document === 'undefined') {
+        const prefix = variant === 'error' ? '[ERRO]' : '[INFO]';
+        console.log(`${prefix} ${message}`);
+        return;
+    }
+
     const messageDiv = document.createElement('div');
-    messageDiv.className = 'status-message success';
+    messageDiv.className = `status-message ${variant}`;
     messageDiv.textContent = message;
     messageDiv.style.position = 'fixed';
     messageDiv.style.top = '20px';
@@ -786,6 +1032,84 @@ function handleExport(format) {
     }
     
     closeExportModal();
+}
+
+function handleImport(event) {
+    const fileInput = event.target;
+    const [file] = fileInput.files || [];
+
+    if (!file) {
+        return;
+    }
+
+    if (!/\.csv$/i.test(file.name)) {
+        showSuccessMessage('Selecione um arquivo CSV válido.', { variant: 'error' });
+        fileInput.value = '';
+        return;
+    }
+
+    if (typeof FileReader === 'undefined') {
+        showSuccessMessage('Importação de CSV não é suportada neste navegador.', { variant: 'error' });
+        fileInput.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (loadEvent) => {
+        try {
+            const content = loadEvent.target?.result;
+            const rows = parseCsvContent(content);
+
+            if (!rows.length) {
+                throw new Error('O arquivo CSV está vazio.');
+            }
+
+            const [headerRow, ...dataRows] = rows;
+            const filteredDataRows = dataRows.filter(row => row.some(cell => String(cell).trim() !== ''));
+
+            if (!filteredDataRows.length) {
+                throw new Error('Nenhum dado foi encontrado no arquivo CSV.');
+            }
+
+            const columnMapping = mapCsvColumns(headerRow);
+            let tempNextId = nextId;
+            const importedProdutos = filteredDataRows.map((row, index) => {
+                const lineNumber = index + 2; // header is line 1
+                const produto = buildProdutoFromCsvRow(row, columnMapping, lineNumber, tempNextId);
+                tempNextId += 1;
+                return produto;
+            });
+
+            if (!importedProdutos.length) {
+                throw new Error('Nenhum item válido foi identificado no arquivo CSV.');
+            }
+
+            nextId = tempNextId;
+            produtos = produtos.concat(importedProdutos);
+            produtosFiltrados = produtos.slice();
+
+            saveProdutos(produtos);
+            refreshConcorrenteFilterOptions();
+            refreshAnoFilterOptions();
+            applyFilters();
+
+            showSuccessMessage(`${importedProdutos.length} item(ns) importado(s) com sucesso!`);
+        } catch (error) {
+            console.error('Erro ao importar CSV:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Não foi possível importar o arquivo CSV.';
+            showSuccessMessage(errorMessage, { variant: 'error' });
+        } finally {
+            fileInput.value = '';
+        }
+    };
+
+    reader.onerror = () => {
+        showSuccessMessage('Não foi possível ler o arquivo selecionado.', { variant: 'error' });
+        fileInput.value = '';
+    };
+
+    reader.readAsText(file, 'utf-8');
 }
 
 function exportToCSV(products) {
@@ -975,6 +1299,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextBtn = document.getElementById('nextBtn');
     const cadastrarBtn = document.getElementById('cadastrarBtn');
     const exportBtn = document.getElementById('exportBtn');
+    const importInput = document.getElementById('importInput');
     const applyFilterBtn = document.getElementById('applyFilterBtn');
     const clearFilterBtn = document.getElementById('clearFilterBtn');
     
@@ -982,6 +1307,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (nextBtn) nextBtn.addEventListener('click', navigateNext);
     if (cadastrarBtn) cadastrarBtn.addEventListener('click', () => openCadastroModal());
     if (exportBtn) exportBtn.addEventListener('click', openExportModal);
+    if (importInput) importInput.addEventListener('change', handleImport);
     if (applyFilterBtn) applyFilterBtn.addEventListener('click', applyFilters);
     if (clearFilterBtn) clearFilterBtn.addEventListener('click', clearFilters);
 
