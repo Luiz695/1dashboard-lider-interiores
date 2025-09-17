@@ -36,8 +36,8 @@
         <section class="filters-section">
             <div class="filters-container">
                 <div class="filter-group">
-                    <label for="tipoFilter" class="filter-label">Tipo de Produto</label>
-                    <select id="tipoFilter" class="form-control">
+                    <label for="linhaReceitaFilter" class="filter-label">Linha de Receita</label>
+                    <select id="linhaReceitaFilter" class="form-control">
                         <option value="Todos">Todos</option>
                     </select>
                 </div>
@@ -174,7 +174,7 @@
                         </svg>
                         Exportar Dados
                     </button>
-                    <label for="importInput" class="btn btn--outline" id="importBtn" title="O arquivo CSV deve conter as colunas: Linha de Receita/Tipo, Mês, Ano, Localização, Produto Líder, Preço Tabela Líder, Preço Promocional Líder, Concorrente, Preço Tabela Concorrente, Preço Promocional Concorrente, Pesquisador e Record.">
+                    <label for="importInput" class="btn btn--outline" id="importBtn" title="O arquivo CSV deve conter as colunas: Linha de Receita, Mês, Ano, Localização, Produto Líder, Preço Tabela Líder, Preço Promocional Líder, Concorrente, Preço Tabela Concorrente, Preço Promocional Concorrente, Pesquisador e Record.">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 4h16v16H4z"></path>
                             <polyline points="8,12 11,15 16,9"></polyline>
@@ -193,7 +193,7 @@
                     <table class="comparison-table">
                         <thead>
                             <tr>
-                                <th>Tipo</th>
+                                <th>Linha de Receita</th>
                                 <th>Período</th>
                                 <th>Localização</th>
                                 <th>Produto Lider</th>
@@ -233,8 +233,8 @@
                         <h3>Informações Gerais</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="modalTipo" class="form-label">Tipo de Produto *</label>
-                                <select id="modalTipo" class="form-control" required>
+                                <label for="modalLinhaReceita" class="form-label">Linha de Receita *</label>
+                                <select id="modalLinhaReceita" class="form-control" required>
                                     <option value="">Selecione...</option>
                                 </select>
                             </div>

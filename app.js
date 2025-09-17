@@ -64,7 +64,7 @@ function ensureProdutoDescontos(produto) {
 const defaultProdutos = [
     {
         id: 1,
-        tipo: "Cadeira",
+        linhaReceita: "SOFÁ",
         mes: "Agosto",
         ano: 2023,
         localizacao: "Belo Horizonte",
@@ -87,7 +87,7 @@ const defaultProdutos = [
     },
     {
         id: 2,
-        tipo: "Poltrona",
+        linhaReceita: "POLTRONA",
         mes: "Agosto",
         ano: 2023,
         localizacao: "São Paulo",
@@ -110,7 +110,7 @@ const defaultProdutos = [
     },
     {
         id: 3,
-        tipo: "Cadeira",
+        linhaReceita: "BANQUETA DE BAR",
         mes: "Setembro",
         ano: 2024,
         localizacao: "Belo Horizonte",
@@ -152,7 +152,7 @@ function normalizeCsvHeaderValue(value) {
 }
 
 const csvFieldLabels = {
-    tipo: 'Linha de Receita/Tipo',
+    linhaReceita: 'Linha de Receita',
     mes: 'Mês',
     ano: 'Ano',
     localizacao: 'Localização',
@@ -167,7 +167,7 @@ const csvFieldLabels = {
 };
 
 const csvColumnAliases = {
-    tipo: ['tipo', 'linhareceita', 'linha_receita', 'linha de receita'],
+    linhaReceita: ['linha de receita', 'linhareceita', 'linha_receita', 'tipo'],
     mes: ['mes', 'mesref', 'mesreferencia'],
     ano: ['ano'],
     localizacao: ['localizacao', 'localidade', 'cidade'],
@@ -182,7 +182,7 @@ const csvColumnAliases = {
 };
 
 const requiredCsvFields = [
-    'tipo',
+    'linhaReceita',
     'mes',
     'ano',
     'localizacao',
@@ -303,7 +303,7 @@ function requireCsvFieldValue(row, mapping, field, rowNumber) {
 }
 
 function buildProdutoFromCsvRow(row, mapping, rowNumber, nextIdentifier) {
-    const tipo = requireCsvFieldValue(row, mapping, 'tipo', rowNumber);
+    const linhaReceita = requireCsvFieldValue(row, mapping, 'linhaReceita', rowNumber);
     const mes = requireCsvFieldValue(row, mapping, 'mes', rowNumber);
     const anoBruto = requireCsvFieldValue(row, mapping, 'ano', rowNumber);
     const anoNormalizado = normalizeAnoValue(anoBruto);
@@ -342,7 +342,7 @@ function buildProdutoFromCsvRow(row, mapping, rowNumber, nextIdentifier) {
 
     const novoProduto = {
         id: nextIdentifier,
-        tipo,
+        linhaReceita,
         mes,
         ano: anoNormalizado,
         localizacao,
@@ -376,6 +376,14 @@ function cloneProdutos(data) {
             otima: { ...(produto.otima || {}) },
             concorrente: { ...(produto.concorrente || {}) }
         };
+
+        if (!cloned.linhaReceita && cloned.tipo) {
+            cloned.linhaReceita = cloned.tipo;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(cloned, 'tipo')) {
+            delete cloned.tipo;
+        }
 
         ensureProdutoDescontos(cloned);
 
@@ -426,7 +434,25 @@ let produtos = loadProdutos();
 let produtosFiltrados = produtos.slice();
 
 const filtros = {
-    tipos: ["Todos", "Cadeira", "Poltrona", "Banqueta", "Mesa"],
+    linhasReceita: [
+        "Todos",
+        "ADORNOS",
+        "BANQUETA DE BAR",
+        "BUFFET",
+        "CADEIRA",
+        "CADEIRA DE JANTAR",
+        "CADEIRA OPERATIVA",
+        "CABECEIRA",
+        "ESCRIVANINHA",
+        "MESA DE CENTRO",
+        "MESA DE JANTAR",
+        "MESA LATERAL",
+        "POLTRONA",
+        "PUFF",
+        "RACK",
+        "SOFÁ",
+        "TAPETES"
+    ],
     meses: ["Todos", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
     localizacoes: ["Todos", "Belo Horizonte", "São Paulo", "Rio de Janeiro", "Brasília"]
 };
@@ -536,20 +562,20 @@ function formatPeriodo(produto) {
 function setupFilters() {
     console.log('Configurando filtros...');
 
-    const tipoFilter = document.getElementById('tipoFilter');
+    const linhaReceitaFilter = document.getElementById('linhaReceitaFilter');
     const mesFilter = document.getElementById('mesFilter');
     const anoFilter = document.getElementById('anoFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
     const concorrenteFilter = document.getElementById('concorrenteFilter');
-    const modalTipo = document.getElementById('modalTipo');
+    const modalLinhaReceita = document.getElementById('modalLinhaReceita');
     const modalMes = document.getElementById('modalMes');
     const modalLocalizacao = document.getElementById('modalLocalizacao');
 
     // Populate main filters
-    if (tipoFilter) {
-        tipoFilter.innerHTML = '<option value="Todos">Todos</option>';
-        filtros.tipos.slice(1).forEach(tipo => {
-            tipoFilter.innerHTML += `<option value="${tipo}">${tipo}</option>`;
+    if (linhaReceitaFilter) {
+        linhaReceitaFilter.innerHTML = '<option value="Todos">Todos</option>';
+        filtros.linhasReceita.slice(1).forEach(linha => {
+            linhaReceitaFilter.innerHTML += `<option value="${linha}">${linha}</option>`;
         });
     }
 
@@ -576,10 +602,10 @@ function setupFilters() {
     }
 
     // Populate modal filters
-    if (modalTipo) {
-        modalTipo.innerHTML = '<option value="">Selecione...</option>';
-        filtros.tipos.slice(1).forEach(tipo => {
-            modalTipo.innerHTML += `<option value="${tipo}">${tipo}</option>`;
+    if (modalLinhaReceita) {
+        modalLinhaReceita.innerHTML = '<option value="">Selecione...</option>';
+        filtros.linhasReceita.slice(1).forEach(linha => {
+            modalLinhaReceita.innerHTML += `<option value="${linha}">${linha}</option>`;
         });
     }
 
@@ -758,13 +784,13 @@ function navigatePrevious() {
 }
 
 function getFilteredProducts() {
-    const tipoFilter = document.getElementById('tipoFilter');
+    const linhaReceitaFilter = document.getElementById('linhaReceitaFilter');
     const mesFilter = document.getElementById('mesFilter');
     const anoFilter = document.getElementById('anoFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
     const concorrenteFilter = document.getElementById('concorrenteFilter');
 
-    const tipoValue = tipoFilter ? tipoFilter.value : 'Todos';
+    const linhaReceitaValue = linhaReceitaFilter ? linhaReceitaFilter.value : 'Todos';
     const mesValue = mesFilter ? mesFilter.value : 'Todos';
     const anoValue = anoFilter ? anoFilter.value : 'Todos';
     const localizacaoValue = localizacaoFilter ? localizacaoFilter.value : 'Todos';
@@ -772,7 +798,7 @@ function getFilteredProducts() {
 
     return produtos.filter(produto => {
         const produtoAno = normalizeAnoValue(produto.ano);
-        return (tipoValue === 'Todos' || produto.tipo === tipoValue) &&
+        return (linhaReceitaValue === 'Todos' || produto.linhaReceita === linhaReceitaValue) &&
                (mesValue === 'Todos' || produto.mes === mesValue) &&
                (anoValue === 'Todos' || (produtoAno !== null && String(produtoAno) === anoValue)) &&
                (localizacaoValue === 'Todos' || produto.localizacao === localizacaoValue) &&
@@ -793,7 +819,7 @@ function updateTable() {
         const periodo = formatPeriodo(produto);
         const { descontoLider, descontoConcorrente } = ensureProdutoDescontos(produto);
         row.innerHTML = `
-            <td>${produto.tipo}</td>
+            <td>${produto.linhaReceita}</td>
             <td>${periodo}</td>
             <td>${produto.localizacao}</td>
             <td>${produto.otima.nome}</td>
@@ -829,13 +855,13 @@ function applyFilters({ showFeedback = false } = {}) {
 }
 
 function clearFilters() {
-    const tipoFilter = document.getElementById('tipoFilter');
+    const linhaReceitaFilter = document.getElementById('linhaReceitaFilter');
     const mesFilter = document.getElementById('mesFilter');
     const anoFilter = document.getElementById('anoFilter');
     const localizacaoFilter = document.getElementById('localizacaoFilter');
     const concorrenteFilter = document.getElementById('concorrenteFilter');
 
-    if (tipoFilter) tipoFilter.value = 'Todos';
+    if (linhaReceitaFilter) linhaReceitaFilter.value = 'Todos';
     if (mesFilter) mesFilter.value = 'Todos';
     if (anoFilter) anoFilter.value = 'Todos';
     if (localizacaoFilter) localizacaoFilter.value = 'Todos';
@@ -852,7 +878,7 @@ function openCadastroModal(produto = null) {
 
         if (produto) {
             editingProductId = produto.id;
-            document.getElementById('modalTipo').value = produto.tipo;
+            document.getElementById('modalLinhaReceita').value = produto.linhaReceita;
             document.getElementById('modalMes').value = produto.mes;
             const modalAno = document.getElementById('modalAno');
             if (modalAno) {
@@ -949,7 +975,7 @@ function handleCadastro(e) {
     const concorrentePrecoPromocional = parseFloat(document.getElementById('modalConcorrentePrecoPromocional').value);
 
     const produtoData = {
-        tipo: document.getElementById('modalTipo').value,
+        linhaReceita: document.getElementById('modalLinhaReceita').value,
         mes: document.getElementById('modalMes').value,
         ano: anoValue,
         localizacao: document.getElementById('modalLocalizacao').value,
@@ -1114,7 +1140,7 @@ function handleImport(event) {
 
 function exportToCSV(products) {
     const headers = [
-        'Tipo', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
+        'Linha de Receita', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
         'IC REGULAR Lider', 'IC PROMOCIONAL Lider', 'Concorrente', 'Preço Tabela Concorrente',
         'Preço Promocional Concorrente', 'IC REGULAR Concorrente', 'IC PROMOCIONAL Concorrente',
         'Desconto Política (%)', 'Desconto Concorrente (%)',
@@ -1132,7 +1158,7 @@ function exportToCSV(products) {
         const { descontoLider, descontoConcorrente } = ensureProdutoDescontos(produto);
 
         const row = [
-            produto.tipo,
+            produto.linhaReceita,
             produto.mes,
             ano !== null ? ano : '',
             produto.localizacao,
@@ -1159,7 +1185,7 @@ function exportToCSV(products) {
 
 function exportToExcel(products) {
     const headers = [
-        'Tipo', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
+        'Linha de Receita', 'Mês', 'Ano', 'Localização', 'Produto Lider', 'Preço Tabela Lider', 'Preço Promocional Lider',
         'IC REGULAR Lider', 'IC PROMOCIONAL Lider', 'Concorrente', 'Preço Tabela Concorrente',
         'Preço Promocional Concorrente', 'IC REGULAR Concorrente', 'IC PROMOCIONAL Concorrente',
         'Desconto Política (%)', 'Desconto Concorrente (%)',
@@ -1177,7 +1203,7 @@ function exportToExcel(products) {
         const { descontoLider, descontoConcorrente } = ensureProdutoDescontos(produto);
 
         const row = [
-            produto.tipo,
+            produto.linhaReceita,
             produto.mes,
             ano !== null ? ano : '',
             produto.localizacao,
