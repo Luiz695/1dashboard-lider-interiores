@@ -60,6 +60,10 @@
   --color-info: var(--color-espresso-500);
   --color-focus-ring: rgba(var(--color-terracotta-400-rgb), 0.4);
   --color-select-caret: rgba(var(--color-espresso-900-rgb), 0.8);
+  --color-danger: var(--color-error);
+  --color-danger-surface: rgba(var(--color-error-rgb), 0.16);
+  --color-danger-surface-hover: rgba(var(--color-error-rgb), 0.24);
+  --color-danger-surface-active: rgba(var(--color-error-rgb), 0.32);
 
   /* Common style patterns */
   --focus-ring: 0 0 0 3px var(--color-focus-ring);
@@ -436,6 +440,19 @@ pre code {
   background: var(--color-secondary);
 }
 
+.btn--danger {
+  background: var(--color-danger-surface);
+  color: var(--color-danger);
+}
+
+.btn--danger:hover {
+  background: var(--color-danger-surface-hover);
+}
+
+.btn--danger:active {
+  background: var(--color-danger-surface-active);
+}
+
 .btn--sm {
   padding: var(--space-4) var(--space-12);
   font-size: var(--font-size-sm);
@@ -508,6 +525,29 @@ select.form-control {
 .form-control:focus {
   border-color: var(--color-primary);
   outline: var(--focus-outline);
+}
+
+.form-feedback {
+  margin-top: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  display: none;
+}
+
+.form-feedback.is-visible {
+  display: block;
+}
+
+.delete-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.delete-modal__description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
 }
 
 .form-label {
@@ -1092,6 +1132,13 @@ select.form-control {
   font-size: var(--font-size-base);
 }
 
+.table-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  align-items: center;
+}
+
 .comparison-table tr:hover {
   background-color: var(--color-bg-5);
 }
@@ -1204,7 +1251,8 @@ select.form-control {
   flex-direction: column;
 }
 
-.modal-sm .modal-content {
+.modal-sm .modal-content,
+.modal-content.modal-sm {
   max-width: 400px;
 }
 

@@ -1,5 +1,6 @@
 // Dashboard Application - Simplified Version
 const STORAGE_KEY = 'dashboardProdutos';
+const DELETE_PASSWORD = 'lider2024'; // Ajuste conforme a política de segurança da equipe
 
 function parsePercentageValue(rawValue) {
     if (rawValue === undefined || rawValue === null) {
@@ -460,6 +461,7 @@ const filtros = {
 let currentProductIndex = 0;
 let nextId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0) + 1;
 let editingProductId = null;
+let pendingDeletionProductId = null;
 
 // Utility Functions
 function formatCurrency(value) {
@@ -828,7 +830,12 @@ function updateTable() {
             <td>${createDiscountIndicatorMarkup(descontoConcorrente)}</td>
             <td>${produto.pesquisador}</td>
             <td>${produto.record}</td>
-            <td><button class="btn btn--outline btn--sm edit-btn" data-id="${produto.id}">Editar</button></td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn--outline btn--sm edit-btn" data-id="${produto.id}">Editar</button>
+                    <button class="btn btn--danger btn--sm delete-btn" data-id="${produto.id}">Excluir</button>
+                </div>
+            </td>
         `;
         tbody.appendChild(row);
     });
@@ -901,13 +908,24 @@ function openCadastroModal(produto = null) {
     }
 }
 
+function restoreBodyScrollIfNeeded() {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    const activeModal = Array.from(document.querySelectorAll('.modal')).find(modal => !modal.classList.contains('hidden'));
+    if (!activeModal) {
+        document.body.style.overflow = '';
+    }
+}
+
 function closeCadastroModal() {
     const modal = document.getElementById('cadastroModal');
     if (modal) {
         modal.classList.add('hidden');
-        document.body.style.overflow = '';
         resetCadastroForm();
         editingProductId = null;
+        restoreBodyScrollIfNeeded();
     }
 }
 
@@ -936,8 +954,102 @@ function closeExportModal() {
     const modal = document.getElementById('exportModal');
     if (modal) {
         modal.classList.add('hidden');
-        document.body.style.overflow = '';
+        restoreBodyScrollIfNeeded();
     }
+}
+
+function setDeleteModalError(message = '') {
+    const errorElement = document.getElementById('deletePasswordError');
+    if (!errorElement) {
+        return;
+    }
+
+    if (message) {
+        errorElement.textContent = message;
+        errorElement.classList.add('is-visible');
+    } else {
+        errorElement.textContent = '';
+        errorElement.classList.remove('is-visible');
+    }
+}
+
+function openDeleteModal(produtoId) {
+    pendingDeletionProductId = Number(produtoId);
+    if (!Number.isInteger(pendingDeletionProductId)) {
+        pendingDeletionProductId = null;
+        return;
+    }
+    const modal = document.getElementById('deleteModal');
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    const passwordInput = document.getElementById('deletePasswordInput');
+    if (passwordInput) {
+        passwordInput.value = '';
+        setTimeout(() => passwordInput.focus(), 50);
+    }
+
+    setDeleteModalError('');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+
+    const passwordInput = document.getElementById('deletePasswordInput');
+    if (passwordInput) {
+        passwordInput.value = '';
+    }
+
+    setDeleteModalError('');
+    pendingDeletionProductId = null;
+    restoreBodyScrollIfNeeded();
+}
+
+function handleDeleteConfirmation(event) {
+    event.preventDefault();
+
+    const passwordInput = document.getElementById('deletePasswordInput');
+    if (!passwordInput) {
+        closeDeleteModal();
+        return;
+    }
+
+    const enteredPassword = passwordInput.value.trim();
+    if (enteredPassword !== DELETE_PASSWORD) {
+        setDeleteModalError('Senha incorreta. Tente novamente.');
+        passwordInput.focus();
+        passwordInput.select();
+        return;
+    }
+
+    if (pendingDeletionProductId === null) {
+        showSuccessMessage('Nenhum item selecionado para exclusão.', { variant: 'error' });
+        closeDeleteModal();
+        return;
+    }
+
+    const productIndex = produtos.findIndex(produto => produto.id === pendingDeletionProductId);
+    if (productIndex === -1) {
+        showSuccessMessage('O item selecionado não foi encontrado.', { variant: 'error' });
+        closeDeleteModal();
+        return;
+    }
+
+    produtos.splice(productIndex, 1);
+    saveProdutos(produtos);
+    refreshConcorrenteFilterOptions();
+    refreshAnoFilterOptions();
+    applyFilters();
+
+    closeDeleteModal();
+    showSuccessMessage('Item excluído com sucesso!');
 }
 
 function getInputNumericValue(elementId) {
@@ -1341,24 +1453,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const tableBody = document.getElementById('tableBody');
     if (tableBody) {
         tableBody.addEventListener('click', (e) => {
-            if (e.target.classList.contains('edit-btn')) {
-                const id = parseInt(e.target.dataset.id);
+            const target = e.target;
+            if (!target || typeof target.closest !== 'function') {
+                return;
+            }
+
+            const editButton = target.closest('.edit-btn');
+            if (editButton) {
+                const id = parseInt(editButton.dataset.id, 10);
                 const produto = produtos.find(p => p.id === id);
-                if (produto) openCadastroModal(produto);
+                if (produto) {
+                    openCadastroModal(produto);
+                }
+                return;
+            }
+
+            const deleteButton = target.closest('.delete-btn');
+            if (deleteButton) {
+                const id = parseInt(deleteButton.dataset.id, 10);
+                if (Number.isInteger(id)) {
+                    openDeleteModal(id);
+                }
             }
         });
     }
-    
+
     // Modal events
     const modalCloseBtn = document.getElementById('modalCloseBtn');
     const modalCancelBtn = document.getElementById('modalCancelBtn');
     const exportModalCloseBtn = document.getElementById('exportModalCloseBtn');
+    const deleteModalCloseBtn = document.getElementById('deleteModalCloseBtn');
+    const deleteModalCancelBtn = document.getElementById('deleteModalCancelBtn');
     const cadastroForm = document.getElementById('cadastroForm');
-    
+    const deleteConfirmForm = document.getElementById('deleteConfirmForm');
+    const deletePasswordInput = document.getElementById('deletePasswordInput');
+
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeCadastroModal);
     if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeCadastroModal);
     if (exportModalCloseBtn) exportModalCloseBtn.addEventListener('click', closeExportModal);
+    if (deleteModalCloseBtn) deleteModalCloseBtn.addEventListener('click', closeDeleteModal);
+    if (deleteModalCancelBtn) deleteModalCancelBtn.addEventListener('click', closeDeleteModal);
     if (cadastroForm) cadastroForm.addEventListener('submit', handleCadastro);
+    if (deleteConfirmForm) deleteConfirmForm.addEventListener('submit', handleDeleteConfirmation);
+    if (deletePasswordInput) deletePasswordInput.addEventListener('input', () => setDeleteModalError(''));
 
     ['modalOtimaPrecoTabela', 'modalOtimaPrecoPromocional', 'modalConcorrentePrecoTabela', 'modalConcorrentePrecoPromocional']
         .forEach(id => {
@@ -1379,7 +1516,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Modal backdrop clicks
     const cadastroModal = document.getElementById('cadastroModal');
     const exportModal = document.getElementById('exportModal');
-    
+    const deleteModal = document.getElementById('deleteModal');
+
     if (cadastroModal) {
         cadastroModal.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal-backdrop')) {
@@ -1387,11 +1525,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     if (exportModal) {
         exportModal.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal-backdrop')) {
                 closeExportModal();
+            }
+        });
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-backdrop')) {
+                closeDeleteModal();
             }
         });
     }
@@ -1405,6 +1551,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') {
             closeCadastroModal();
             closeExportModal();
+            closeDeleteModal();
         }
         if (e.key === 'ArrowLeft') {
             e.preventDefault();
