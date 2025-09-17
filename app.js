@@ -469,6 +469,8 @@ let currentProductIndex = 0;
 let nextId = produtos.reduce((max, produto) => Math.max(max, produto.id), 0) + 1;
 let editingProductId = null;
 let pendingDeletionProductId = null;
+let pendingEditProductId = null;
+let currentPasswordAction = null;
 
 // Utility Functions
 function formatCurrency(value) {
@@ -965,7 +967,7 @@ function closeExportModal() {
     }
 }
 
-function setDeleteModalError(message = '') {
+function setProtectedModalError(message = '') {
     const errorElement = document.getElementById('deletePasswordError');
     if (!errorElement) {
         return;
@@ -980,12 +982,24 @@ function setDeleteModalError(message = '') {
     }
 }
 
-function openDeleteModal(produtoId) {
-    pendingDeletionProductId = Number(produtoId);
-    if (!Number.isInteger(pendingDeletionProductId)) {
-        pendingDeletionProductId = null;
-        return;
+function configureProtectedActionModal({ title, description, confirmLabel }) {
+    const titleElement = document.getElementById('protectedActionTitle');
+    if (titleElement && title) {
+        titleElement.textContent = title;
     }
+
+    const descriptionElement = document.getElementById('protectedActionDescription');
+    if (descriptionElement && description) {
+        descriptionElement.textContent = description;
+    }
+
+    const confirmButton = document.getElementById('deleteModalConfirmBtn');
+    if (confirmButton && confirmLabel) {
+        confirmButton.textContent = confirmLabel;
+    }
+}
+
+function openProtectedModal() {
     const modal = document.getElementById('deleteModal');
     if (!modal) {
         return;
@@ -1000,7 +1014,57 @@ function openDeleteModal(produtoId) {
         setTimeout(() => passwordInput.focus(), 50);
     }
 
-    setDeleteModalError('');
+    setProtectedModalError('');
+}
+
+function openDeleteModal(produtoId) {
+    const numericId = Number(produtoId);
+    if (!Number.isInteger(numericId)) {
+        return;
+    }
+
+    const produto = produtos.find(item => item.id === numericId);
+    if (!produto) {
+        showSuccessMessage('O item selecionado não foi encontrado.', { variant: 'error' });
+        return;
+    }
+
+    pendingDeletionProductId = numericId;
+    currentPasswordAction = 'delete';
+
+    configureProtectedActionModal({
+        title: 'Excluir Item',
+        description: `Tem certeza de que deseja excluir "${produto.otima?.nome || 'este item'}"? Essa ação não poderá ser desfeita.`,
+        confirmLabel: 'Excluir Item'
+    });
+
+    openProtectedModal();
+}
+
+function openEditProtectionModal(produtoId) {
+    const numericId = Number(produtoId);
+    if (!Number.isInteger(numericId)) {
+        return;
+    }
+
+    const produto = produtos.find(item => item.id === numericId);
+    if (!produto) {
+        showSuccessMessage('O item selecionado não foi encontrado.', { variant: 'error' });
+        return;
+    }
+
+    pendingEditProductId = numericId;
+    currentPasswordAction = 'edit';
+
+    const produtoNome = produto.otima?.nome || produto.concorrente?.nome || 'este item';
+
+    configureProtectedActionModal({
+        title: 'Editar Item',
+        description: `Para editar "${produtoNome}", confirme a senha de acesso.`,
+        confirmLabel: 'Liberar edição'
+    });
+
+    openProtectedModal();
 }
 
 function closeDeleteModal() {
@@ -1014,12 +1078,14 @@ function closeDeleteModal() {
         passwordInput.value = '';
     }
 
-    setDeleteModalError('');
+    setProtectedModalError('');
     pendingDeletionProductId = null;
+    pendingEditProductId = null;
+    currentPasswordAction = null;
     restoreBodyScrollIfNeeded();
 }
 
-function handleDeleteConfirmation(event) {
+function handleProtectedActionConfirmation(event) {
     event.preventDefault();
 
     const passwordInput = document.getElementById('deletePasswordInput');
@@ -1030,33 +1096,58 @@ function handleDeleteConfirmation(event) {
 
     const enteredPassword = passwordInput.value.trim();
     if (enteredPassword !== DELETE_PASSWORD) {
-        setDeleteModalError('Senha incorreta. Tente novamente.');
+        setProtectedModalError('Senha incorreta. Tente novamente.');
         passwordInput.focus();
         passwordInput.select();
         return;
     }
 
-    if (pendingDeletionProductId === null) {
-        showSuccessMessage('Nenhum item selecionado para exclusão.', { variant: 'error' });
+    if (currentPasswordAction === 'delete') {
+        if (pendingDeletionProductId === null) {
+            showSuccessMessage('Nenhum item selecionado para exclusão.', { variant: 'error' });
+            closeDeleteModal();
+            return;
+        }
+
+        const productIndex = produtos.findIndex(produto => produto.id === pendingDeletionProductId);
+        if (productIndex === -1) {
+            showSuccessMessage('O item selecionado não foi encontrado.', { variant: 'error' });
+            closeDeleteModal();
+            return;
+        }
+
+        produtos.splice(productIndex, 1);
+        saveProdutos(produtos);
+        refreshConcorrenteFilterOptions();
+        refreshAnoFilterOptions();
+        applyFilters();
+
         closeDeleteModal();
+        showSuccessMessage('Item excluído com sucesso!');
         return;
     }
 
-    const productIndex = produtos.findIndex(produto => produto.id === pendingDeletionProductId);
-    if (productIndex === -1) {
-        showSuccessMessage('O item selecionado não foi encontrado.', { variant: 'error' });
+    if (currentPasswordAction === 'edit') {
+        if (pendingEditProductId === null) {
+            showSuccessMessage('Nenhum item selecionado para edição.', { variant: 'error' });
+            closeDeleteModal();
+            return;
+        }
+
+        const produto = produtos.find(item => item.id === pendingEditProductId);
+        if (!produto) {
+            showSuccessMessage('O item selecionado não foi encontrado.', { variant: 'error' });
+            closeDeleteModal();
+            return;
+        }
+
         closeDeleteModal();
+        openCadastroModal(produto);
         return;
     }
-
-    produtos.splice(productIndex, 1);
-    saveProdutos(produtos);
-    refreshConcorrenteFilterOptions();
-    refreshAnoFilterOptions();
-    applyFilters();
 
     closeDeleteModal();
-    showSuccessMessage('Item excluído com sucesso!');
+    showSuccessMessage('Nenhuma ação protegida foi identificada.', { variant: 'error' });
 }
 
 function getInputNumericValue(elementId) {
@@ -1468,9 +1559,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const editButton = target.closest('.edit-btn');
             if (editButton) {
                 const id = parseInt(editButton.dataset.id, 10);
-                const produto = produtos.find(p => p.id === id);
-                if (produto) {
-                    openCadastroModal(produto);
+                if (Number.isInteger(id)) {
+                    openEditProtectionModal(id);
                 }
                 return;
             }
@@ -1501,8 +1591,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deleteModalCloseBtn) deleteModalCloseBtn.addEventListener('click', closeDeleteModal);
     if (deleteModalCancelBtn) deleteModalCancelBtn.addEventListener('click', closeDeleteModal);
     if (cadastroForm) cadastroForm.addEventListener('submit', handleCadastro);
-    if (deleteConfirmForm) deleteConfirmForm.addEventListener('submit', handleDeleteConfirmation);
-    if (deletePasswordInput) deletePasswordInput.addEventListener('input', () => setDeleteModalError(''));
+    if (deleteConfirmForm) deleteConfirmForm.addEventListener('submit', handleProtectedActionConfirmation);
+    if (deletePasswordInput) deletePasswordInput.addEventListener('input', () => setProtectedModalError(''));
 
     ['modalOtimaPrecoTabela', 'modalOtimaPrecoPromocional', 'modalConcorrentePrecoTabela', 'modalConcorrentePrecoPromocional']
         .forEach(id => {

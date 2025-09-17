@@ -409,7 +409,7 @@
         <div class="modal-backdrop"></div>
         <div class="modal-content modal-sm">
             <div class="modal-header">
-                <h2>Excluir Item</h2>
+                <h2 id="protectedActionTitle">Excluir Item</h2>
                 <button class="modal-close" id="deleteModalCloseBtn" aria-label="Fechar">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -419,7 +419,7 @@
             </div>
             <div class="modal-body">
                 <form id="deleteConfirmForm" class="delete-modal__form">
-                    <p class="delete-modal__description">
+                    <p class="delete-modal__description" id="protectedActionDescription">
                         Tem certeza de que deseja excluir este item? Essa ação não poderá ser desfeita.
                     </p>
                     <label for="deletePasswordInput" class="form-label">Senha de confirmação</label>
